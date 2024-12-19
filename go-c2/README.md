@@ -6,5 +6,4 @@
 	- [ ] encryption
 	- [ ] Use HTTPS instead of HTTP
 - [ ] Persistence
-- [ ] Multiple Agents 
-- [ ] 
+- [ ] Multiple Agents
