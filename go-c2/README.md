@@ -2,8 +2,9 @@
 ---
 ## TODO:
 - [ ] Basic C2 functionality
+- [ ] Web GUI administration tool
+	- [ ] make it pretty (optional)
 - [ ] evade detection
-	- [ ] encryption
-	- [ ] Use HTTPS instead of HTTP
+	- [ ] encrypted traffic
 - [ ] Persistence
-- [ ] Multiple Agents
+- [ ] Multiple Agents/Concurrency
