@@ -6,4 +6,4 @@
 (add contributer names once some code is written and keep this up to date.)
 
 ### C2 Written in Go:
-- Manager: [Krish Bhatti @kriba24](https://github.com/kriba24)
+- Manager: [Krish Bhatti](https://github.com/kriba24)
