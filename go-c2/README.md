@@ -1,9 +1,10 @@
 # Command and Control (C2) Implementation in Go Lang
 ---
 ## TODO:
-- [ ] Basic C2 functionality
+- [x] Basic C2 functionality
+- [x] Web GUI administration tool
+	- [ ] make it pretty (optional)
 - [ ] evade detection
-	- [ ] encryption
-	- [ ] Use HTTPS instead of HTTP
+	- [ ] encrypted traffic
 - [ ] Persistence
-- [ ] Multiple Agents
+- [x] Multiple Agents/Concurrency
