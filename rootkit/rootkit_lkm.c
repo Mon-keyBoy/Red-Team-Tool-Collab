@@ -5,7 +5,7 @@
 
 // Necessary headers 
 
-// ???
+// Contains basic system parameters and macros used throughout the kernel.
 #include <sys/param.h>
 
 // Provides the DECLARE_MODULE macro for registering the module.
@@ -21,7 +21,7 @@
 // Standard input/output library for C, allows for printing to the terminal and accepting input from it
 #include <stdio.h>
 
-// ???
+// Declares the sysent structure (syscall table), which holds syscall entries.
 #include <sys/sysent.h>
 
 // ???
@@ -31,22 +31,48 @@
 #include <sys/sysproto.h>
 
 
+// sysent is the syscall table in freebsd/pfsense, is it an imported variable and a structure
+// This is a pointer to the syscall table in memory
+static struct sysent *syscall_table;
+
+// See if we can easily find the sysent table and point to it
+static int find_sysent_table (void) {
+
+    // The sysent table should be global in freeBSD/pfSense
+    syscall_table = sysent;
+    if (syscall_table) {
+        uprintf("Table found at address: %p\n", syscall_table)
+        return 0
+    }
+    else {
+        uprintf("Table not found.\n")
+        return 1
+    }
+}
 
 
-// This is temporary, figure out what you actually want to do.
-// Most likely these will call different files, MOD_LOAD should call a file that start hooking syscalls and does the intended
-// functionality of the rootkit.
-// MOD_UNLOAD should implement log clearing (for what?) and a call to a file with the chosen persintance method
-// I do not know what the default with be but most likely it will call a file that attempts to reload the module and if failed, created the persistant method
-// The above line regarding the default case should take in account whether or not it is possible to hook a syscall (if it is a syscall)
-// to shut down/reboot the system to pause it, excecute the desired operations, then continue with the shut down/reboot  
+
+
+
+
+// default should implement some kind of persistance method.  
+//Ideally it will somehow recreate the rootkit binary and re-load it upon the machine starting back up.
 
 // Module event handler <rootkit_handler>
 // Handles load/unload requests from kldload and kldunload.
 static int rootkit_handler(struct module *module, int event, void *arg) {
+
+    // This is the result of looking for the memory address of the sysent table, it will be 0 if successfull and anything else for other cases
+    int search_table_case = 0
     switch (event) {
     case MOD_LOAD:
-        uprintf("Hello, Kernel!\n");  // Print message to userland
+        search_table_case = find_sysent_table();
+        if (search_table_case = 0) {
+            uprintf("No error with finding sysent table address.\n")
+        }
+        else {
+            uprintf("sysent table not found.\n")
+        }
         break;
     case MOD_UNLOAD:
         uprintf("Goodbye, Kernel!\n");
@@ -71,5 +97,6 @@ static moduledata_t rootkit_mod = {
 
 // Register the module
 // What does it do???
-// Module name, metadata struct, ?, ?
-DECLARE_MODULE(//fill this in);
+// Module name, metadata struct, subsustem level the module will be loaded at, order in which the module is loaded 
+// "rootkit", <rootkit_mod>, initialized at the driver subsystem level, will be loaded after critical drivers but before less important ones 
+DECLARE_MODULE(rootkit, rootkit_mod, SI_SUB_DRIVERS, SI_ORDER_MIDDLE);
