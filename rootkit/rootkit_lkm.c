@@ -15,11 +15,8 @@
 // Defines constants like MOD_LOAD and MOD_UNLOAD for module lifecycle management.
 #include <sys/module.h>
 
-// ???
+// We can't use <stdio> in kernel level application but this allows for uprintf
 #include <sys/systm.h>
-
-// Standard input/output library for C, allows for printing to the terminal and accepting input from it
-#include <stdio.h>
 
 // Declares the sysent structure (syscall table), which holds syscall entries.
 #include <sys/sysent.h>
