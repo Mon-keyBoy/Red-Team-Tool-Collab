@@ -1,3 +1,3 @@
 KMOD=rootkit
-SRCS=rootkit.c
+SRCS=rootkit_lkm.c
 .include <bsd.kmod.mk>
