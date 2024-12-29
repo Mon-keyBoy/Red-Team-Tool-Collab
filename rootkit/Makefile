@@ -1,4 +1,4 @@
 KMOD=rootkit
 SRCS=rootkit_lkm.c
-CC=clang
+CC=clang15
 .include <bsd.kmod.mk>
