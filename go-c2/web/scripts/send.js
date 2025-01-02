@@ -9,7 +9,7 @@ guiSocket.onopen = () => console.log("[+] Connected to C2 server for agent respo
 // When a message is received from the C2 server for agent responses, the message is displayed in the output div.
 guiSocket.onmessage = (event) => {
     const output = event.data;
-    document.getElementById("output").innerHTML += `<b>Response:</b><br>${output}<br>`;
+    document.getElementById("output").innerHTML += `<b>Response:</b><br><pre>${output}</pre><br>`;
 };
 
 guiSocket.onclose = () => console.log("[-] GUI connection closed."); // Logs a message when the connection to the C2 server for agent responses is closed.
@@ -19,7 +19,7 @@ function sendCommand() {
     const command = document.getElementById("command-box").value;
     if (command) {
         commandSocket.send(command);
-        document.getElementById("output").innerHTML += `Command sent: ${command}<br>`;
+        document.getElementById("output").innerHTML += `Command sent: <pre>${command}</pre><br>`;
         document.getElementById("command-box").value = "";
     }
 }
