@@ -1,0 +1,30 @@
+1.  These files will need to be within the environment that you compile this code but not within the environment that you execute that compiled file in.
+
+2.  param.h, Contains basic system parameters and macros used throughout the kernel.
+kernel.h, Provides the DECLARE_MODULE macro for registering the module.
+module.h, Contains struct module and functions to manage loadable kernel modules (LKMs).  Defines constants like MOD_LOAD and MOD_UNLOAD for module lifecycle management.
+systm.h, We can't use <stdio> in kernel level application but this allows for uprintf
+sysent.h, Declares the sysent structure (syscall table), which holds syscall entries.
+syscall.h, Defines contstants in the sysent table like SYS_read and SYS-write.
+proc.h, unkown.
+sysproto.h, unkown.
+types.h, Provides type aliases and definitions (makes life easier).
+
+3.  sysent is the syscall table in freebsd/pfsense, is it an imported variable and a structure.
+
+4.  The sysent table should be global in freeBSD/pfSense.
+Changing syscall_table will not change the memory addresses within the global sysent array.
+This grabs the first memroy address: old_syscall_table = sysent.
+This is currently only doing anything for the SYS-read handler and not any others.
+
+5.  Default should implement some kind of persistance method.  
+Ideally it will somehow recreate the rootkit binary and re-load it upon the machine starting back up.
+Module event handler <rootkit_handler>
+Handles load/unload requests from kldload and kldunload.
+
+6.  This struct registers the module with the kernel, linking the name (rootkit) with the handler.
+
+7.  Register the module.
+What does it do???
+Module name, metadata struct, subsustem level the module will be loaded at, order in which the module is loaded. 
+"rootkit", <rootkit_mod>, initialized at the driver subsystem level, will be loaded after critical drivers but before less important ones.
