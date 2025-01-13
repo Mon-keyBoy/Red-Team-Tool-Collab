@@ -36,6 +36,7 @@ static struct sysent *syscall_table;
 static int find_sysent_table (void) {
 
     // The sysent table should be global in freeBSD/pfSense
+    // Changing syscall_table will not change the memory addresses within the global sysent array
     syscall_table = sysent;
     if (syscall_table) {
         uprintf("Table found at address: %p\n", syscall_table);
