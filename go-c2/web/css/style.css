@@ -20,7 +20,8 @@ body {
     background-color: #333;
     color: lime;
     height: 300px;
-    overflow-y: scroll;
+    overflow: auto;
+    white-space: pre-wrap;
 }
 button {
     padding: 10px 20px;
