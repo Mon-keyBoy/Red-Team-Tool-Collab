@@ -14,7 +14,7 @@ types.h, Provides type aliases and definitions (makes life easier).
 
 4.  The sysent table should be global in freeBSD/pfSense.
 Changing syscall_table will not change the memory addresses within the global sysent array.
-This grabs the first memroy address: old_syscall_table = sysent.
+This grabs the first memroy address of the sysent array: old_syscall_table = sysent.
 This is currently only doing anything for the SYS-read handler and not any others.
 
 5.  Default should implement some kind of persistance method.  
