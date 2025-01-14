@@ -49,7 +49,7 @@ static int find_sysent_table (void) {
 
     if (old_syscall_table) {
         uprintf("Table found at address: %p\n", old_syscall_table);
-        change_sysent_addresses(); //add args
+        change_sysent_addresses(old_syscall_table); //add args
         return 0;
     }
     else {
@@ -61,10 +61,12 @@ static int find_sysent_table (void) {
 
 
 
-static int change_sysent_addresses (//arguments) {
+static int change_sysent_addresses () {
     // Replace SYS_read with a custom handler
     // sysent[SYS_read] is a pointer to SYS_read in the sysent array
-    // sysent[SYS_read] = custom_syscall; 
+
+    //no args needed, just point to the start address of the new handler
+    //sysent[SYS_read] = custom_syscall; 
     // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
 }
 
