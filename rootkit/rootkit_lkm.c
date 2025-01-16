@@ -33,10 +33,11 @@ static struct sysent new_read_handler = {
 
 
 
-
-
-
-
+// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
+// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
+// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
+// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
+// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
 
 
 
