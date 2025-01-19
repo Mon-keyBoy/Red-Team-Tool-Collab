@@ -26,18 +26,23 @@ static struct sysent *syscall_table;
 // Go
 // Here
 
-static struct sysent new_read_handler = {
 
+static struct sysent custom_sysread = {
+// invoke og syscall
+// do some functionality before the wrapper collects the response from CPU registers 
+
+// what do these lines actually do???
+// .sy_call = (sy_call_t *)custom_read, // Your custom handler function
+// .sy_narg = 3,                       // Number of arguments for SYS_read
+// options of where to commit out changes
+
+// 1.
+// change input before SYS_read gets invoked
+// search for addresses of things to remove, make kernel not look for that within its execution
+
+
+// 2.
 }
-
-
-
-
-// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
-// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
-// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
-// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
-// this all depends on if we can change the memroy address in the sysent table on the fly without recompilatation
 
 
 
@@ -46,11 +51,11 @@ static struct sysent new_read_handler = {
 static int find_sysent_table (void) {
 
     // Store memory address of sysent table, See 4.
-    old_syscall_table = sysent[SYS_read];
+    old_sysread = sysent[SYS_read];
 
-    if (old_syscall_table) {
-        uprintf("Table found at address: %p\n", old_syscall_table);
-        change_sysent_addresses(old_syscall_table); //add args
+    if (old_sysread) {
+        uprintf("Table found at address: %p\n", old_sysread);
+        change_sysent_addresses(old_sysread); //add args
         return 0;
     }
     else {
@@ -66,8 +71,9 @@ static int change_sysent_addresses () {
     // Replace SYS_read with a custom handler
     // sysent[SYS_read] is a pointer to SYS_read in the sysent array
 
-    //no args needed, just point to the start address of the new handler
-    //sysent[SYS_read] = custom_syscall; 
+    // no args needed, just point to the start address of the new handler
+    
+    sysent[SYS_read] = custom_sysread; 
     // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
 }
 
