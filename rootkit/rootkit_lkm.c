@@ -40,7 +40,7 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
     // value returned by og sys_read indicating success or if an error occured
     int original_sysread_return;
     // invoke og syscall
-    orignal_sysread_return = original_sysread->sy_call(td, syscall_args);
+    original_sysread_return = original_sysread->sy_call(td, syscall_args);
 
     // check if an error occured
     if (original_sysread_return != 0) {
