@@ -35,7 +35,7 @@ static struct sysent *original_sysread;
 // Here
 
 // we could also implement a switch statement here as opposed to if's and else if's for what invoked the syscall
-static int custom_sysread(struct thread *td, void *syscall_args) = {
+static int custom_sysread(struct thread *td, void *syscall_args) {
 
     // value returned by og sys_read indicating success or if an error occured
     int original_sysread_return;
@@ -83,11 +83,11 @@ static int custom_sysread(struct thread *td, void *syscall_args) = {
 static int find_sysread_address (void) {
 
     // Store memory address of sysent table, See 4.
-    original_sysread = sysent[SYS_read];
+    original_sysread = &sysent[SYS_read];
     
 
-    if (original_sysread.sy_call) {
-        uprintf("Sysread found at address: %p\n", original_sysread.sy_call);
+    if (original_sysread->sy_call) {
+        uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
         // point to custom handler
         sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
         // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
