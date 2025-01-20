@@ -166,7 +166,7 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
         uprintf("module loaded");
         uprintf("module loaded");
         uprintf("module loaded");
-        search_table_case = find_sysread_address();
+        //search_table_case = find_sysread_address();
         if (search_table_case == 0) {
             uprintf("No error with finding sysent table address.\n");
         }
