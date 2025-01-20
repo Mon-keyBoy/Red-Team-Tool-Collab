@@ -23,7 +23,7 @@
 
 
 // This is a pointer to sysread in memory, See 3.
-static struct sysent *old_sysread;
+static struct sysent *original_sysread;
 
 
 
@@ -40,7 +40,7 @@ static int custom_sysread(struct thread *td, void *syscall_args) = {
     // value returned by og sys_read indicating success or if an error occured
     int original_sysread_return;
     // invoke og syscall
-    orignal_sysread_return = original_sysread(td, syscall_args);
+    orignal_sysread_return = original_sysread->sy_call(td, syscall_args);
 
     // check if an error occured
     if (original_sysread_return != 0) {
@@ -86,8 +86,8 @@ static int find_sysread_address (void) {
     original_sysread = sysent[SYS_read];
     
 
-    if (old_sysread.sy_call) {
-        uprintf("Sysread found at address: %p\n", old_sysread.sy_call);
+    if (original_sysread.sy_call) {
+        uprintf("Sysread found at address: %p\n", original_sysread.sy_call);
         // point to custom handler
         sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
         // sysent[SYS_read].sy_call = (sy_call_t *)custom_read; // Replace
