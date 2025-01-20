@@ -109,10 +109,28 @@ static int find_sysread_address (void) {
     if (original_sysread->sy_call) {
         uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
         // point to custom handler, with synchronization to avoid unwanted kernel behaiver
-
-        // commented out to see if overwriting the address is what's causing issues
         // critical_enter();  // Enter critical section
+
+
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
+        // this line is causing everything to crash!!!
         // sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
+
+
+
         // critical_exit();   // Exit critical section
 
         return 0;
