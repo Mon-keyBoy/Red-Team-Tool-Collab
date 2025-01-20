@@ -27,8 +27,7 @@ static struct sysent *original_sysread;
 
 
 
-
-// All
+// All.
 // New
 // Handlers
 // Go
