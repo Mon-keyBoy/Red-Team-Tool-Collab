@@ -14,15 +14,14 @@ static struct sysent *syscall_table;
 
 // See if we can easily find the sysent table and point to it
 static int find_sysent_table (void) {
+    original_sysread = &sysent[SYS_read];
 
-    // The sysent table should be global in freeBSD/pfSense
-    syscall_table = sysent;
-    if (syscall_table) {
-        uprintf("Table found at address: %p\n", syscall_table);
-        return 0;
-    }
+    // print address of sy_call pointer in sys_read structure
+    if (original_sysread->sy_call) {
+        uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
+        return 0
     else {
-        uprintf("Table not found.\n");
+        uprintf("SYS_read not found.\n");
         return 1;
     }
 }
