@@ -8,6 +8,7 @@
 #include <sys/sysproto.h>
 #include <sys/types.h>
 #include <vm/vm.h>
+#include <vm/pmap.h>
 #include <vm/vm_map.h>
  
 
@@ -15,16 +16,16 @@ static struct sysent *original_sysread;
 
 // function to check is sysread is read only
 static void check_memory_protection(vm_offset_t address) {
-    vm_map_t map = kernel_map;  // Kernel's memory map
+    extern vm_map_t kernel_map;  // Declare kernel_map as external
     vm_map_entry_t entry;
 
     vm_map_lock_read(map);  // Lock the map for reading
-    if (vm_map_lookup_entry(map, address, &entry)) {
+    if (vm_map_lookup_entry(kernel_map, address, &entry)) {
         uprintf("Address: %p, Protection: %d\n", (void *)address, entry->protection);
     } else {
         uprintf("Address: %p not found in kernel map.\n", (void *)address);
     }
-    vm_map_unlock_read(map);  // Unlock the map
+    vm_map_unlock_read(kernel_map);  // Unlock the map
 }
 
 // Find the memory address of the sysent table and point to our handlers if found.
