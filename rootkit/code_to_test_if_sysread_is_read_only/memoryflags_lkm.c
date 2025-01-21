@@ -19,7 +19,7 @@ static void check_memory_protection(vm_offset_t address) {
     extern vm_map_t kernel_map;  // Declare kernel_map as external
     vm_map_entry_t entry;
 
-    vm_map_lock_read(map);  // Lock the map for reading
+    vm_map_lock_read(kernel_map);  // Lock the map for reading
     if (vm_map_lookup_entry(kernel_map, address, &entry)) {
         uprintf("Address: %p, Protection: %d\n", (void *)address, entry->protection);
     } else {
