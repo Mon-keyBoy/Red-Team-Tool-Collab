@@ -19,7 +19,8 @@ static int find_sysent_table (void) {
     // print address of sy_call pointer in sys_read structure
     if (original_sysread->sy_call) {
         uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
-        return 0
+        return 0;
+    }
     else {
         uprintf("SYS_read not found.\n");
         return 1;
