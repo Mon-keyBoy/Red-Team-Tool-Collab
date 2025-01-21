@@ -10,7 +10,7 @@
 
 
 // This is a pointer to the syscall table in memory
-static struct sysent *syscall_table;
+static struct sysent *original_sysread;
 
 // See if we can easily find the sysent table and point to it
 static int find_sysent_table (void) {
