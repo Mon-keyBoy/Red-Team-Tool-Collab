@@ -89,7 +89,9 @@ static int find_sysread_address (void) {
         // point to custom handler, with synchronization to avoid unwanted kernel behaiver
         // critical_enter();  // Enter critical section
 
-
+        // .sy_call in the struct sysent is of the type sy_call_t *, 
+        // which is a pointer to a function with the following signature:
+        //typedef int sy_call_t(struct thread *td, void *syscall_args); (not a real line of code just pertains to the above lines)
         // this line is causing everything to crash!!!
         // this line is causing everything to crash!!!
         // this line is causing everything to crash!!!
