@@ -12,7 +12,9 @@
 #include <sys/proc.h>
 #include <sys/sysproto.h>
 #include <sys/types.h>
-
+// for making memory addresses writable 
+#include <vm/vm.h>
+#include <vm/pmap.h>
 
 
 // this is for reference, this is what a sysent entry is 
@@ -36,6 +38,27 @@ static struct sysent *original_sysread;
 // we could also implement a switch statement here as opposed to if's and else if's for what invoked the syscall
 static int custom_sysread(struct thread *td, void *syscall_args) {
 
+
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
+    uprintf("SUCCESSFULY POINTED TO NEW FUNCTION")
     // value returned by og sys_read indicating success or if an error occured
     int original_sysread_return;
     // invoke og syscall
@@ -107,7 +130,23 @@ static int find_sysread_address (void) {
         // this line is causing everything to crash!!!
         // this line is causing everything to crash!!!
         // this line is causing everything to crash!!!
-        // sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
+
+        // make sysent memory address writable
+        vm_offset_t addr = (vm_offset_t)&sysent[SYS_read];  // Get the address of sysent[SYS_read]
+
+        pmap_protect(kernel_pmap,                        // Kernel's page map
+                 trunc_page(addr),                   // Align to the start of the page
+                 round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
+                 VM_PROT_READ | VM_PROT_WRITE);
+
+        // change sysent sy_call pointer to our point to our custom handler
+        sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
+
+        // set back to read only
+        pmap_protect(kernel_pmap,                        // Kernel's page map
+                 trunc_page(addr),                   // Align to the start of the page
+                 round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
+                 VM_PROT_READ);                      // Set to read-only
 
 
 
