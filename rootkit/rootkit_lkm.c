@@ -115,21 +115,6 @@ static int find_sysfork_address (void) {
         // .sy_call in the struct sysent is of the type sy_call_t *, 
         // which is a pointer to a function with the following signature:
         //typedef int sy_call_t(struct thread *td, void *syscall_args); (not a real line of code just pertains to the above lines)
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
-        // this line is causing everything to crash!!!
 
         // make sysent memory address writable
         vm_offset_t addr = (vm_offset_t)&sysent[SYS_fork];  // Get the address of sysent[SYS_fork]
@@ -141,6 +126,8 @@ static int find_sysfork_address (void) {
 
         // change sysent sy_call pointer to our point to our custom handler
         sysent[SYS_fork].sy_call = (sy_call_t *)custom_sysfork;
+        // print new memory address it's pointing to
+        uprintf("New Sysfork address at: %p\n", original_sysfork->sy_call)
 
         // set back to read only
         pmap_protect(kernel_pmap,                        // Kernel's page map
