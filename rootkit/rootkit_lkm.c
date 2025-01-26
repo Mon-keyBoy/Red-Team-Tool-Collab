@@ -61,6 +61,9 @@ static int custom_sysfork(struct thread *td, void *syscall_args) {
     uprintf("SUCCESSFULY POINTED TO NEW FUNCTION");
     // value returned by og sys_read indicating success or if an error occured
     int original_sysfork_return;
+
+    original_sysfork_return = 0; //for testing, DELETE THIS LINE
+
     // invoke og syscall 
     // original_sysfork is pointer to the struct sys_fork
     // sy_call is a member of that struct
