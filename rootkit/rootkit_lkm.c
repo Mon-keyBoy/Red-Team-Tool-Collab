@@ -127,7 +127,7 @@ static int find_sysfork_address (void) {
         // change sysent sy_call pointer to our point to our custom handler
         sysent[SYS_fork].sy_call = (sy_call_t *)custom_sysfork;
         // print new memory address it's pointing to
-        uprintf("New Sysfork address at: %p\n", original_sysfork->sy_call)
+        uprintf("New Sysfork address at: %p\n", original_sysfork->sy_call);
 
         // set back to read only
         pmap_protect(kernel_pmap,                        // Kernel's page map
