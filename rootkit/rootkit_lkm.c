@@ -65,7 +65,8 @@ static int custom_sysfork(struct thread *td, void *syscall_args) {
     // original_sysfork is pointer to the struct sys_fork
     // sy_call is a member of that struct
     // ->, is accessing the member and invoking it
-    original_sysfork_return = original_sysfork->sy_call(td, syscall_args);
+
+    ////original_sysfork_return = original_sysfork->sy_call(td, syscall_args);
 
     // check if an error occured
     if (original_sysfork_return != 0) {
@@ -117,12 +118,12 @@ static int find_sysfork_address (void) {
         //typedef int sy_call_t(struct thread *td, void *syscall_args); (not a real line of code just pertains to the above lines)
 
         // make sysent memory address writable
-        vm_offset_t addr = (vm_offset_t)&sysent[SYS_fork];  // Get the address of sysent[SYS_fork]
+        ////vm_offset_t addr = (vm_offset_t)&sysent[SYS_fork];  // Get the address of sysent[SYS_fork]
 
-        pmap_protect(kernel_pmap,                        // Kernel's page map
-                 trunc_page(addr),                   // Align to the start of the page
-                 round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
-                 VM_PROT_READ | VM_PROT_WRITE);
+        ////pmap_protect(kernel_pmap,                        // Kernel's page map
+                 ////trunc_page(addr),                   // Align to the start of the page
+                 ////round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
+                 ////VM_PROT_READ | VM_PROT_WRITE);
 
         // change sysent sy_call pointer to our point to our custom handler
         sysent[SYS_fork].sy_call = (sy_call_t *)custom_sysfork;
@@ -130,10 +131,10 @@ static int find_sysfork_address (void) {
         uprintf("New Sysfork address at: %p\n", original_sysfork->sy_call);
 
         // set back to read only
-        pmap_protect(kernel_pmap,                        // Kernel's page map
-                 trunc_page(addr),                   // Align to the start of the page
-                 round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
-                 VM_PROT_READ);                      // Set to read-only
+        ////pmap_protect(kernel_pmap,                        // Kernel's page map
+                 ////trunc_page(addr),                   // Align to the start of the page
+                 ////round_page(addr + sizeof(struct sysent)),  // Align to the end of the page
+                 ////VM_PROT_READ);                      // Set to read-only
 
 
 
