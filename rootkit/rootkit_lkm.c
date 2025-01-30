@@ -5,6 +5,7 @@
 #include <sys/sysent.h>
 #include <sys/syscall.h>
 #include <sys/proc.h>
+#include <kern/kprintf.h>
 #include <sys/sysproto.h>
 #include <sys/types.h>
 
@@ -19,16 +20,25 @@ static sy_call_t *original_mkdir = NULL; // Store original sys_mkdir
 /* Custom mkdir handler */
 static int custom_mkdir(struct thread *td, void *syscall_args) {
     struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
+    char path[PATH_MAX];
+    int error;
 
-    printf("[LKM] mkdir called: Path = %s\n", uap->path);
+    /* Safely copy path from user space */
+    error = copyinstr(uap->path, path, sizeof(path), NULL);
+    if (error) {
+        log("[LKM] Failed to copy user path (error: %d)\n", error);
+        return error;
+    }
 
-    // Call original mkdir functionality
+    log("[LKM] mkdir called: Path = %s\n", path);
+
+    /* Call original mkdir functionality */
     int ret = original_mkdir(td, syscall_args);
 
     if (ret == 0)
-        printf("[LKM] Directory %s created successfully!\n", uap->path);
+        log("[LKM] Directory %s created successfully!\n", path);
     else
-        printf("[LKM] mkdir failed with error code: %d\n", ret);
+        log("[LKM] mkdir failed with error code: %d\n", ret);
 
     return ret;
 }
@@ -43,10 +53,10 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
 
         original_mkdir = sysent[SYS_mkdir].sy_call;  // Save original
         sysent[SYS_mkdir].sy_call = (sy_call_t *)custom_mkdir;  // Hook syscall
-        uprintf("[LKM] Hooked sys_mkdir!\n");
+        kprintf("[LKM] Hooked sys_mkdir!\n");
         break;
     case MOD_UNLOAD:
-        uprintf("Goodbye, Kernel!\n");
+        kprintf("Goodbye, Kernel!\n");
         break;
     default:
         return EOPNOTSUPP;  // Unsupported operation
