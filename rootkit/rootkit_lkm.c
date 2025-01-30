@@ -5,7 +5,6 @@
 #include <sys/sysent.h>
 #include <sys/syscall.h>
 #include <sys/proc.h>
-#include <kern/kprintf.h>
 #include <sys/sysproto.h>
 #include <sys/types.h>
 
