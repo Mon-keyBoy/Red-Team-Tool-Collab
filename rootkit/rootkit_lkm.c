@@ -45,8 +45,6 @@ static int custom_mkdir(struct thread *td, void *syscall_args) {
 // Create a handler for the LKM, See 5.
 static int rootkit_handler(struct module *module, int event, void *arg) {
 
-    // This is the result of looking for the memory address of the sysent table, it will be 0 if successfull and anything else for other cases
-    int search_table_case = 0;
     switch (event) {
     case MOD_LOAD:
 
