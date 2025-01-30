@@ -18,9 +18,9 @@ static sy_call_t *original_mkdir = NULL; // Store original sys_mkdir
 
 /* Custom mkdir handler */
 static int custom_mkdir(struct thread *td, void *syscall_args) {
-    struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
+    //struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
     char path[PATH_MAX];
-    int error;
+    int error = 69;
 
     /* Safely copy path from user space */
     //error = copyinstr(uap->path, path, sizeof(path), NULL);
