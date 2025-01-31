@@ -27,7 +27,7 @@ int kern_execve(struct thread *td, struct execve_args *uap);
 
 
 
-// good till here
+
 
 
 // pfil_head is a list of the all the filtering functions applied to incoming/outgoing packets
@@ -35,9 +35,21 @@ int kern_execve(struct thread *td, struct execve_args *uap);
 static struct pfil_hook *my_hook;
 
 
+// good till here
 
 
-static int packet_filter(void *arg, struct mbuf **mp, struct ifnet *ifp, int dir, struct inpcb *inp) {
+
+
+
+
+
+
+
+
+// typedef	pfil_return_t	(*pfil_mbuf_chk_t)(struct mbuf **, struct ifnet *, int,
+// void *, struct inpcb *);
+
+static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
     struct ip *ip_header;
     struct tcphdr *tcp_header;
@@ -45,25 +57,25 @@ static int packet_filter(void *arg, struct mbuf **mp, struct ifnet *ifp, int dir
 
 
     // Ensure mbuf is valid
-    if (m == NULL) return 0;
+    if (m == NULL) return PFIL_PASS;;
 
 
    // Make sure the packet has enough data for an IP header
     if (m->m_len < sizeof(struct ip)) {
         m = m_pullup(m, sizeof(struct ip));
-        if (m == NULL) return 0;
+        if (m == NULL) return PFIL_PASS;;
     }
    
     // Extract the IP header
     ip_header = mtod(m, struct ip *);
     // Check if it's a TCP packet
-    if (ip_header->ip_p != IPPROTO_TCP) return 0;
+    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
 
     // Ensure there's enough data for TCP header
     if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
         m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
-        if (m == NULL) return 0;
+        if (m == NULL) return PFIL_PASS;;
     }
 
 
@@ -124,16 +136,27 @@ static int packet_filter(void *arg, struct mbuf **mp, struct ifnet *ifp, int dir
         }
     }
    
-    return 0;
+    return PFIL_PASS;;
 }
 
+
+
+
+
+
+
+
+
+
+
+//good after here
 
 // Load function: Attach our packet filter
 static int load(void) {
 
     struct pfil_hook_args pha = {
         .pa_version = PFIL_VERSION,         // Version of the pfil framework
-        .pa_flags = PFIL_IN | PFIL_OUT,     // Flags for filtering incoming and outgoing packets
+        .pa_flags = PFIL_IN,     // Flags for filtering incoming and outgoing packets
         .pa_type = PFIL_TYPE_IP4,            // Type of filter (address family)
         .pa_mbuf_chk = packet_filter,       // Function to process packets
         .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
@@ -159,13 +182,7 @@ static int load(void) {
 
 
 // Unload function: Remove our filter
-// static int unload(void) {
-//     if (pfh_inet != NULL) {
-//         pfil_remove_hook(packet_filter, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
-//     }
-//     printf("[LKM] Packet filter module unloaded\n");
-//     return 0;
-// }
+
 
 
 static int event_handler(struct module *module, int event, void *arg) {
