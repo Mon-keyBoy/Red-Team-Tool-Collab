@@ -2,7 +2,5 @@ KMOD= revShellRootkit
 SRCS= rev_shells.c
 CC= clang15
 LD?= /usr/local/bin/ld.lld15
-# disable SSP
-# CFLAGS+= -fno-stack-protector # didn't solve the issue
 
 .include <bsd.kmod.mk>

