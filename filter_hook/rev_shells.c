@@ -179,11 +179,11 @@ static int event_handler(struct module *module, int event, void *arg) {
             load_head();
             load_hook();
             load_link();
-            return 17;
+            return 0;
         case MOD_UNLOAD:
             unload();
             printf("[LKM] Module unloaded.\n");
-            return 82;
+            return 0;
         default:
             return EOPNOTSUPP;
     }
