@@ -125,27 +125,7 @@ static int load(void) {
     return 0;
 }
 
-static int unload(void) {
-    struct pfil_head *pfh_inet;
 
-    // Get the IPv4 packet filter hook head
-    pfh_inet = pfil_head_get(PFIL_TYPE_IP4);
-    if (pfh_inet == NULL) {
-        printf("[LKM] Error: Failed to get IPv4 pfil head\n");
-        return EINVAL;  // Return an error code
-    }
-
-    // Remove the hook
-    if (my_hook != NULL) {
-        pfil_remove_hook_from_head(my_hook, pfh_inet);
-        my_hook = NULL;  // Avoid dangling pointer
-        printf("[LKM] Packet filter module unloaded\n");
-    } else {
-        printf("[LKM] Warning: Attempted to unload, but hook was NULL\n");
-    }
-
-    return 0;
-}
 
 
 static int event_handler(struct module *module, int event, void *arg) {
@@ -154,7 +134,7 @@ static int event_handler(struct module *module, int event, void *arg) {
             return load();
         case MOD_UNLOAD:
             // return unload();
-            return unload();
+            return 5;
         default:
             return EOPNOTSUPP;
     }
