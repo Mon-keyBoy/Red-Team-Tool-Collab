@@ -29,7 +29,6 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     struct mbuf *m = *mp;
     struct ip *ip_header;
     struct tcphdr *tcp_header;
-    int error;
 
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
@@ -40,15 +39,15 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
         if (m == NULL) return PFIL_PASS;;
     }
    
-    // Extract the TCP header
-    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
-    // Check source port
-    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
-
     // Extract the IP header
     ip_header = mtod(m, struct ip *);
     // Check if it's a TCP packet
     if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
+    
+    // Extract the TCP header
+    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
+    // Check source port
+    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
 
     // Ensure there's enough data for TCP header
     if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
