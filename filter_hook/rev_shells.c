@@ -93,7 +93,7 @@ static int load_head(void) {
     struct pfil_head_args pha = {
         .pa_version = PFIL_VERSION,
         .pa_flags = 0,
-        .pa_type = PFIL_TYPE_AF,
+        .pa_type = PFIL_TYPE_IP4,
         .pa_headname = "custom_filter_apeshit"
     };
 
