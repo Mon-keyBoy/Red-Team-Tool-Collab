@@ -173,7 +173,7 @@ static int event_handler(struct module *module, int event, void *arg) {
         case MOD_LOAD:
             load_head_case = load_head();
             load_hook_case = load_hook();
-            load_link_case = load_link()
+            load_link_case = load_link();
             return 17;
         case MOD_UNLOAD:
             unload();
