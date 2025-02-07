@@ -117,6 +117,7 @@ static int load(void) {
 
     if (my_hook == NULL) {
         // Handle error
+        printf("mannnn that shit aint work");
         return (ENOMEM);
     }
 
