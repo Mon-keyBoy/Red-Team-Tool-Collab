@@ -115,7 +115,7 @@ static int load_hook(void) {
         .pa_version = PFIL_VERSION,         // Version of the pfil framework
         .pa_flags = 0,                       /* Not specifying PFIL_IN/PFIL_OUT here */
         .pa_type = PFIL_TYPE_IP4,            // Type of filter (address family)
-        .pa_mbuf_chk = packet_filter,       // Function to process packets
+        .pa_mbuf_chk = my_packet_filter,       // Function to process packets
         .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
         .pa_ruleset = NULL,                 // No custom ruleset (set to NULL if unused)
         .pa_modname = "apeshit filtering",          // Module name
@@ -171,9 +171,12 @@ static void unload(void) {
 static int event_handler(struct module *module, int event, void *arg) {
     switch (event) {
         case MOD_LOAD:
-            load_head_case = load_head();
-            load_hook_case = load_hook();
-            load_link_case = load_link();
+            // load_head_case = load_head();
+            // load_hook_case = load_hook();
+            // load_link_case = load_link();
+            load_head();
+            load_hook();
+            load_link();
             return 17;
         case MOD_UNLOAD:
             unload();
