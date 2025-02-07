@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <sys/unistd.h>
+#include <string.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
     // Change the name of the process
