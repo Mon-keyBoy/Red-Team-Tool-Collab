@@ -109,7 +109,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
 static int get_pfil_head(void) {
     // Retrieve the existing IPv4 filtering head
-    g_ph = pfil_head_get(PFIL_TYPE_IP4, NULL);
+    g_ph = V_inet_pfil_head;
 
     if (g_ph == NULL) {
         printf("[LKM] Failed to get existing IPv4 pfil_head\n");
