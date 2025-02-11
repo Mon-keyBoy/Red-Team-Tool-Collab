@@ -116,6 +116,8 @@ static int get_pfil_head(void) {
         return (ENOENT);
     }
 
+    return (0);
+
 }
 
 
