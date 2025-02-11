@@ -88,24 +88,35 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 }
         
     
-static int load_head(void) {
+// static int load_head(void) {
 
-    struct pfil_head_args pha = {
-        .pa_version = PFIL_VERSION,
-        .pa_flags = 0,
-        .pa_type = PFIL_TYPE_IP4,
-        .pa_headname = "custom_filter_apeshit"
-    };
+//     struct pfil_head_args pha = {
+//         .pa_version = PFIL_VERSION,
+//         .pa_flags = 0,
+//         .pa_type = PFIL_TYPE_IP4,
+//         .pa_headname = "custom_filter_apeshit"
+//     };
 
-    g_ph = pfil_head_register(&pha);
+//     g_ph = pfil_head_register(&pha);
+
+//     if (g_ph == NULL) {
+//         printf("[LKM] Could not register custom pfil_head\n");
+//         return (ENOMEM);
+//     }
+//     printf("[LKM] Custom pfil_head registered: %s\n", pha.pa_headname);
+//     return (0);
+// };
+
+static int get_pfil_head(void) {
+    // Retrieve the existing IPv4 filtering head
+    g_ph = pfil_head_get(PFIL_TYPE_IP4, NULL);
 
     if (g_ph == NULL) {
-        printf("[LKM] Could not register custom pfil_head\n");
-        return (ENOMEM);
+        printf("[LKM] Failed to get existing IPv4 pfil_head\n");
+        return (ENOENT);
     }
-    printf("[LKM] Custom pfil_head registered: %s\n", pha.pa_headname);
-    return (0);
-};
+
+}
 
 
 
@@ -141,7 +152,7 @@ static int load_link(void) {
 
     struct pfil_link_args la = {
         .pa_version = PFIL_VERSION,
-        .pa_flags   = PFIL_IN | PFIL_HEADPTR | PFIL_HOOKPTR,
+        .pa_flags   = PFIL_IN | PFIL_OUT | PFIL_HEADPTR | PFIL_HOOKPTR,
         .pa_head    = g_ph,
         .pa_hook    = g_hook,
     };
@@ -176,7 +187,8 @@ static int event_handler(struct module *module, int event, void *arg) {
             // load_head_case = load_head();
             // load_hook_case = load_hook();
             // load_link_case = load_link();
-            load_head();
+            // load_head();
+            get_pfil_head();
             load_hook();
             load_link();
             return 0;
