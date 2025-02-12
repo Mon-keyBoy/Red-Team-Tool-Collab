@@ -54,17 +54,16 @@ static void kvprintf_buf_writer(int c, void *arg) {
 // Wrapper function to format IP using kvprintf()
 static void format_ip_using_kvprintf(char *buffer, size_t size, struct in_addr ip) {
     struct kvprintf_buf kvb = { buffer, size, 0 };
-    va_list args;
 
-    // Start variadic argument handling
-    va_start(args, ip);
-    
-    kvprintf("%d.%d.%d.%d", kvprintf_buf_writer, &kvb, 10, args);
-    
-    // End variadic processing
-    va_end(args);
+    kvprintf_buf_writer((ip.s_addr >> 24) & 0xFF, &kvb);
+    kvprintf_buf_writer('.', &kvb);
+    kvprintf_buf_writer((ip.s_addr >> 16) & 0xFF, &kvb);
+    kvprintf_buf_writer('.', &kvb);
+    kvprintf_buf_writer((ip.s_addr >> 8) & 0xFF, &kvb);
+    kvprintf_buf_writer('.', &kvb);
+    kvprintf_buf_writer(ip.s_addr & 0xFF, &kvb);
 
-    buffer[kvb.pos] = '\0';  // Null-terminate the string
+    buffer[kvb.pos] = '\0';
 }
 
 
