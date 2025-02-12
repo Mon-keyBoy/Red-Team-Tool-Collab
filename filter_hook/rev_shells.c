@@ -45,13 +45,13 @@ static eventhandler_tag my_fork_tag;
 // registers custom func to kernel
 // EVENTHANDLER_DIRECT_INVOKE(process_fork, p1, p2, fr->fr_flags);
 // The above line invokes process_fork and below we register to process_fork
-static void load_custom_fork_event_handler(void *arg) {
+static void load_custom_fork_event_handler() {
     my_fork_tag = EVENTHANDLER_REGISTER(process_fork, my_fork_hook, NULL, EVENTHANDLER_PRI_ANY);
     printf("[LKM] process_fork handler registered!\n");
 }
 
 // unregisters custom func to kernel
-static void unload_custom_fork_event_handler(void *arg) {
+static void unload_custom_fork_event_handler() {
     if (my_fork_tag != NULL)
         EVENTHANDLER_DEREGISTER(process_fork, my_fork_tag);
     printf("[LKM] process_fork handler unregistered!\n");
