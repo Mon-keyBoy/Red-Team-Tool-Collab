@@ -24,6 +24,7 @@
 #include <sys/queue.h> // for finding proc
 #include <sys/lock.h>     // Locking mechanisms
 #include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
+#include <sys/unistd.h> // for RFPROC
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
