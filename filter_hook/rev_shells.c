@@ -53,6 +53,7 @@ static void __stack_chk_fail(void) {
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
     if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
         // do no custom functionality if this is a normal fork call
+        return;
     }
 
     struct thread *child_td;
@@ -72,8 +73,10 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
 
     // Copy arguments into image_args struct
-    // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
-    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
+     // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
+    
+    
+    error = exec_copyin_args(args, argv[0], UIO_SYSSPACE, argv, envp);
     if (error) {
         printf("[LKM] exec_copyin_args failed: %d\n", error);
         return;
