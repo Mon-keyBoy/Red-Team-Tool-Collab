@@ -36,8 +36,8 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     struct ip *ip_header;
     struct tcphdr *tcp_header;
 
-    // Ensure mbuf is valid
-    if (m == NULL) return PFIL_PASS;;
+    // // Ensure mbuf is valid
+    // if (m == NULL) return PFIL_PASS;;
 
     // // Make sure the packet has enough data for an IP header
     // if (m->m_len < sizeof(struct ip)) {
@@ -61,13 +61,54 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     //     if (m == NULL) return PFIL_PASS;;
     // }
 
-    struct ip *ip_header = mtod(mbuf, struct ip *);
-    if (ip_header->ip_p == IPPROTO_TCP) {
-        struct tcphdr *tcp_header = (struct tcphdr *)((u_char *)ip_header + (ip_header->ip_hl << 2));
-        if (ntohs(tcp_header->th_sport) != 6969) {
-            return PFIL_PASS;
-        }
+
+
+    // Ensure mbuf is valid
+    if (m == NULL) return PFIL_PASS;
+
+    // Ensure the mbuf has at least an IP header
+    if (m->m_len < sizeof(struct ip)) {
+        return PFIL_PASS;  // Ignore tiny/malformed packets
     }
+
+    // Extract IP header
+    ip_header = mtod(m, struct ip *);
+
+    // Ensure it's a TCP packet
+    if (ip_header->ip_p != IPPROTO_TCP) {
+        return PFIL_PASS;
+    }
+
+    // Compute the required header size (IP + TCP)
+    int header_size = (ip_header->ip_hl << 2) + sizeof(struct tcphdr);
+
+    // Check if data is contiguous in the mbuf
+    if (!m_pullup_needed(m, header_size)) {
+        // Directly extract TCP header if pullup is not needed
+        tcp_header = (struct tcphdr *)((u_char *)ip_header + (ip_header->ip_hl << 2));
+    } else {
+        // Perform m_pullup() only if required
+        m = m_pullup(m, header_size);
+        if (m == NULL) return PFIL_PASS;  // Drop if pullup fails
+
+        // Recalculate headers after pullup
+        ip_header = mtod(m, struct ip *);
+        tcp_header = (struct tcphdr *)((u_char *)ip_header + (ip_header->ip_hl << 2));
+    }
+
+    // Check TCP source port
+    if (ntohs(tcp_header->th_sport) != 6969) {
+        return PFIL_PASS;
+    }
+
+
+
+
+
+
+
+
+
 
 
     // now we know the packet is a red-team packet
@@ -86,7 +127,9 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
 }
 
-
+static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
+    return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
+}
         
     
 // static int load_head(void) {
