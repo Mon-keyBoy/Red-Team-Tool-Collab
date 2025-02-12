@@ -150,27 +150,6 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 }
 
 
-        
-    
-// static int load_head(void) {
-
-//     struct pfil_head_args pha = {
-//         .pa_version = PFIL_VERSION,
-//         .pa_flags = 0,
-//         .pa_type = PFIL_TYPE_IP4,
-//         .pa_headname = "custom_filter_apeshit"
-//     };
-
-//     g_ph = pfil_head_register(&pha);
-
-//     if (g_ph == NULL) {
-//         printf("[LKM] Could not register custom pfil_head\n");
-//         return (ENOMEM);
-//     }
-//     printf("[LKM] Custom pfil_head registered: %s\n", pha.pa_headname);
-//     return (0);
-// };
-
 static int get_pfil_head(void) {
     // Retrieve the existing IPv4 filtering head
     g_ph = V_inet_pfil_head;
@@ -183,8 +162,6 @@ static int get_pfil_head(void) {
     return (0);
 
 }
-
-
 
 
 // Load function: Attach our packet filter
@@ -238,6 +215,7 @@ static void unload(void) {
         g_hook = NULL;
         printf("[LKM] pfil_hook removed\n");
     }
+    unload_custom_fork_event_handler();
 }
 
 
@@ -249,9 +227,11 @@ static int event_handler(struct module *module, int event, void *arg) {
             // load_hook_case = load_hook();
             // load_link_case = load_link();
             // load_head();
+            // should test is we actually got each one before continueing 
             get_pfil_head();
             load_hook();
             load_link();
+            load_custom_fork_event_handler();
             return 0;
         case MOD_UNLOAD:
             unload();
