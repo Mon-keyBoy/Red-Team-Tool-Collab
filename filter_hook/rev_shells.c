@@ -65,9 +65,6 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    // Zero out the args structure
-    bzero(&args, sizeof(args));
-
     // Define command and arguments: /bin/sh -c "echo hello"
     char *argv[] = { "/bin/sh", "-c", "echo hello | wall", NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
@@ -76,8 +73,8 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
      // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
     
     
-    error = exec_copyin_args(args, argv[0], UIO_SYSSPACE, argv, envp);
-    if (error) {
+    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
+    if (error != 0) {
         printf("[LKM] exec_copyin_args failed: %d\n", error);
         return;
     }
