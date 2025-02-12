@@ -154,7 +154,7 @@ static int load_link(void) {
 
     struct pfil_link_args la = {
         .pa_version = PFIL_VERSION,
-        .pa_flags   = PFIL_IN | PFIL_OUT | PFIL_HEADPTR | PFIL_HOOKPTR,
+        .pa_flags   = PFIL_IN | PFIL_HEADPTR | PFIL_HOOKPTR,
         .pa_head    = g_ph,
         .pa_hook    = g_hook,
     };
