@@ -174,11 +174,6 @@ static void unload(void) {
         g_hook = NULL;
         printf("[LKM] pfil_hook removed\n");
     }
-    if (g_ph) {
-        pfil_head_unregister(g_ph);
-        g_ph = NULL;
-        printf("[LKM] pfil_head unregistered\n");
-    }
 }
 
 
