@@ -1,3 +1,4 @@
+CFLAGS+= -fno-stack-protector -fno-stack-check
 KMOD= apekit_rootshit
 SRCS= rev_shells.c
 CC= clang15
