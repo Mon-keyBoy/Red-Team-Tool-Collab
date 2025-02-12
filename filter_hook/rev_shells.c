@@ -43,28 +43,28 @@ struct kvprintf_buf {
     size_t pos;
 };
 
-// Callback function for kvprintf() that writes to the buffer
+// Callback function for kvprintf()
 static void kvprintf_buf_writer(int c, void *arg) {
     struct kvprintf_buf *kvb = (struct kvprintf_buf *)arg;
-    
-    // Ensure we don't exceed buffer size (leave space for null terminator)
     if (kvb->pos < kvb->len - 1) {
         kvb->buf[kvb->pos++] = (char)c;
     }
 }
 
-// Function to format an IP address using kvprintf()
+// Wrapper function to format IP using kvprintf()
 static void format_ip_using_kvprintf(char *buffer, size_t size, struct in_addr ip) {
     struct kvprintf_buf kvb = { buffer, size, 0 };
+    va_list args;
 
-    kvprintf("%d.%d.%d.%d", kvprintf_buf_writer, &kvb, 10, 
-             (ip.s_addr >> 24) & 0xFF,
-             (ip.s_addr >> 16) & 0xFF,
-             (ip.s_addr >> 8) & 0xFF,
-             (ip.s_addr) & 0xFF);
+    // Start variadic argument handling
+    va_start(args, ip);
+    
+    kvprintf("%d.%d.%d.%d", kvprintf_buf_writer, &kvb, 10, args);
+    
+    // End variadic processing
+    va_end(args);
 
-    // Null-terminate the string
-    buffer[kvb.pos] = '\0';
+    buffer[kvb.pos] = '\0';  // Null-terminate the string
 }
 
 
