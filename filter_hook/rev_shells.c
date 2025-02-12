@@ -30,6 +30,10 @@ static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
+
+
+
+
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
 */
@@ -38,10 +42,8 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     printf("Called custom hook when fork was invoked!!!\n");
 
 }
-
 // used to register our func to the kernel
 static eventhandler_tag my_fork_tag;
-
 // registers custom func to kernel
 // EVENTHANDLER_DIRECT_INVOKE(process_fork, p1, p2, fr->fr_flags);
 // The above line invokes process_fork and below we register to process_fork
@@ -49,13 +51,13 @@ static void load_custom_fork_event_handler(void) {
     my_fork_tag = EVENTHANDLER_REGISTER(process_fork, my_fork_hook, NULL, EVENTHANDLER_PRI_ANY);
     printf("[LKM] process_fork handler registered!\n");
 }
-
 // unregisters custom func to kernel
 static void unload_custom_fork_event_handler(void) {
     if (my_fork_tag != NULL)
         EVENTHANDLER_DEREGISTER(process_fork, my_fork_tag);
     printf("[LKM] process_fork handler unregistered!\n");
 }
+
 
 
 
@@ -67,12 +69,10 @@ static void unload_custom_fork_event_handler(void) {
  */
 static pfil_head_t g_ph    = NULL;
 static pfil_hook_t g_hook  = NULL;
-
 // Helper function to see if the resource costly <m_pullup()> is needed for pakcet filtering
 static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
     return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
 }
-
 // Additional custom packet filter
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
