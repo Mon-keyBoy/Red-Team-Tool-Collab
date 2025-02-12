@@ -19,9 +19,11 @@
 #include <net/if.h>
 #include <sys/syslog.h>
 #include <sys/eventhandler.h>
+#include <string.h>  // For strcmp()
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
+#define TARGET_PROC "apeshit"
 // Define stack protection so we can use snprintf
 // Define the stack protector guard
 uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
@@ -39,9 +41,12 @@ static void __stack_chk_fail(void) {
 */
 // Custom func that will be invoked whenever do_fork() is invoked
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
-    printf("Called custom hook when fork was invoked!!!\n");
+    if (strcmp(parent->p_comm, TARGET_PROC) == 0) {
+        printf("parent is apeshit!");
+    }
 
 }
+
 // used to register our func to the kernel
 static eventhandler_tag my_fork_tag;
 // registers custom func to kernel
