@@ -26,7 +26,7 @@
 uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
 
 // Define the stack protection failure handler
-void __stack_chk_fail(void) {
+static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
