@@ -29,7 +29,9 @@
 static pfil_head_t g_ph    = NULL;
 static pfil_hook_t g_hook  = NULL;
 
-
+static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
+    return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
+}
 
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
@@ -127,9 +129,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
 }
 
-static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
-    return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
-}
+
         
     
 // static int load_head(void) {
