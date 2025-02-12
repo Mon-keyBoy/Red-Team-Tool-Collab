@@ -97,7 +97,6 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
         // Convert to human-readable string (optional)
         char ip_str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &src_ip, ip_str, INET_ADDRSTRLEN);
 
         printf("Source IP: %s\n", ip_str);
 
