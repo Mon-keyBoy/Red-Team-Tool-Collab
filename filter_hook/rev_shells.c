@@ -74,7 +74,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
    
     //printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
-    printf("Packet with source port 6969 detected!!\n")
+    printf("Packet with source port 6969 detected!!\n");
     return PFIL_PASS;
 
 }
