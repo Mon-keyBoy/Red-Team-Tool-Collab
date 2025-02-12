@@ -32,7 +32,7 @@ static pfil_hook_t g_hook  = NULL;
 
 
 // Helper function to convert an integer (0-255) to a string
-int int_to_str(int num, char *buffer) {
+static int int_to_str(int num, char *buffer) {
     char temp[4];  // Max value 255 (3 digits + '\0')
     int i = 0, j = 0;
 
@@ -56,7 +56,7 @@ int int_to_str(int num, char *buffer) {
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
     struct ip *ip_header;
-    struct tcphdr *tcp_header;
+    // struct tcphdr *tcp_header;
 
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
