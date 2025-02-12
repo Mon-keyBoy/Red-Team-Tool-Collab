@@ -109,11 +109,17 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
 
         char ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
+        // gives IP quartets in reverse order
+        // snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
+        //          (ip_header->ip_src.s_addr >> 24) & 0xFF,
+        //          (ip_header->ip_src.s_addr >> 16) & 0xFF,
+        //          (ip_header->ip_src.s_addr >> 8) & 0xFF,
+        //          (ip_header->ip_src.s_addr) & 0xFF);
         snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
-                 (ip_header->ip_src.s_addr >> 24) & 0xFF,
-                 (ip_header->ip_src.s_addr >> 16) & 0xFF,
-                 (ip_header->ip_src.s_addr >> 8) & 0xFF,
-                 (ip_header->ip_src.s_addr) & 0xFF);
+         (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
+         (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
+         (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
+         (ntohl(ip_header->ip_src.s_addr)) & 0xFF);
         
         printf("Kernel IP Address: %s\n", ip_str);
 
