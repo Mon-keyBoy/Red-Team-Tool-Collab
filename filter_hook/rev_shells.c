@@ -47,7 +47,8 @@ static void __stack_chk_fail(void) {
 // Custom func that will be invoked whenever do_fork() is invoked
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
     if (strcmp(parent->p_comm, TARGET_PROC) == 0) {
-        printf("parent is apeshit!");
+        printf("Parent is apeshit!");
+
     }
 
 }
