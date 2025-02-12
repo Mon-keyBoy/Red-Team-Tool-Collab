@@ -66,6 +66,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         struct tcphdr *tcp_header = (struct tcphdr *)((u_char *)ip_header + (ip_header->ip_hl << 2));
         if (ntohs(tcp_header->th_sport) != 6969) {
             return PFIL_PASS;
+        }
     }
 
 
