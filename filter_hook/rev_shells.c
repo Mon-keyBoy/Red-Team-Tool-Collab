@@ -54,7 +54,7 @@ static void kvprintf_buf_writer(int c, void *arg) {
 }
 
 // Function to format an IP address using kvprintf()
-void format_ip_using_kvprintf(char *buffer, size_t size, struct in_addr ip) {
+static void format_ip_using_kvprintf(char *buffer, size_t size, struct in_addr ip) {
     struct kvprintf_buf kvb = { buffer, size, 0 };
 
     kvprintf("%d.%d.%d.%d", kvprintf_buf_writer, &kvb, 10, 
