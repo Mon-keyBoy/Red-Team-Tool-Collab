@@ -19,7 +19,7 @@
 #include <net/if.h>
 #include <sys/syslog.h>
 #include <sys/eventhandler.h>
-#include <string.h>  // For strcmp()
+#include <sys/libkern.h>  // Kernel-space string functions
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
