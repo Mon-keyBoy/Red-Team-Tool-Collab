@@ -72,8 +72,11 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     // Copy arguments into image_args struct
      // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
     
-    
-    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, &argv, &envp);
+     // correct signature
+//  int exec_copyin_args(struct image_args *args, const char *fname,
+//    enum uio_seg segflg, char **argv, char **envv)
+
+    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, char(**)&envp);
     if (error != 0) {
         printf("[LKM] exec_copyin_args failed: %d\n", error);
         return;
