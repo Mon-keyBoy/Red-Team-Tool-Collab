@@ -98,7 +98,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
     // Create a string of the attacker source IP
     char attacker_ip_str[INET_ADDRSTRLEN];  // Buffer for IP string
-    snprintf(attacker_ip_str, sizeof(ip_str), "%d.%d.%d.%d",
+    snprintf(attacker_ip_str, sizeof(attacker_ip_str), "%d.%d.%d.%d",
         (ntohl(ip_header->ip_src.s_addr) >> 24) & 0xFF,
         (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
         (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
