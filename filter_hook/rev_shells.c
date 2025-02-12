@@ -54,23 +54,23 @@ int int_to_str(int num, char *buffer) {
 
 
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
-    // struct mbuf *m = *mp;
-    // struct ip *ip_header;
-    // struct tcphdr *tcp_header;
+    struct mbuf *m = *mp;
+    struct ip *ip_header;
+    struct tcphdr *tcp_header;
 
-    // // Ensure mbuf is valid
-    // if (m == NULL) return PFIL_PASS;;
+    // Ensure mbuf is valid
+    if (m == NULL) return PFIL_PASS;;
 
-    // // Make sure the packet has enough data for an IP header
-    // if (m->m_len < sizeof(struct ip)) {
-    //     m = m_pullup(m, sizeof(struct ip));
-    //     if (m == NULL) return PFIL_PASS;;
-    // }
+    // Make sure the packet has enough data for an IP header
+    if (m->m_len < sizeof(struct ip)) {
+        m = m_pullup(m, sizeof(struct ip));
+        if (m == NULL) return PFIL_PASS;;
+    }
    
-    // // Extract the IP header
-    // ip_header = mtod(m, struct ip *);
-    // // Check if it's a TCP packet
-    // if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
+    // Extract the IP header
+    ip_header = mtod(m, struct ip *);
+    // Check if it's a TCP packet
+    if (ip_header->ip_p != IPPROTO_TCP) return PFIL_PASS;;
 
     // // Extract the TCP header
     // tcp_header = (struct tcphdr *)((caddr_t)ip_header + (ip_header->ip_hl << 2));
