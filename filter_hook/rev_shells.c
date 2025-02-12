@@ -76,7 +76,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 //  int exec_copyin_args(struct image_args *args, const char *fname,
 //    enum uio_seg segflg, char **argv, char **envv)
 
-    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, char(**)&envp);
+    error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
     if (error != 0) {
         printf("[LKM] exec_copyin_args failed: %d\n", error);
         return;
