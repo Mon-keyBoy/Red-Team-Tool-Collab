@@ -102,7 +102,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
     return (error);
 }
 
-static int main(void) {
+static void main(void) {
     struct image_args args;
     int error;
     // Define command and arguments: /bin/sh -c "echo hello"
@@ -116,6 +116,7 @@ static int main(void) {
     }
 
     error = kern_execve(td, &args, NULL, NULL);
+    printf(error);
 
 }
 
