@@ -3,7 +3,9 @@ OBJS= fuckme.o
 CC= clang15
 LD?= /usr/local/bin/ld.lld15
 CFLAGS += -D_KERNEL
-.include <bsd.kmod.mk>
+bb= /usr/src/sys
+CFLAGS += -I$(bb) -I$(bb)/amd64/include -I$(bb)/netinet -I$(bb)/sys
+
 
 all: fuckme
 
