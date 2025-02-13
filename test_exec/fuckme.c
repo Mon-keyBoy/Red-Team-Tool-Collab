@@ -39,6 +39,9 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
     struct vmspace *oldvmspace);
 
 
+
+    static void do_fuck(void);
+
     static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
         u_long arg, env;
         int error;
@@ -102,6 +105,10 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
     return (error);
 }
 
+
+do_fuck();
+
+
 static void do_fuck(void) {
     struct image_args args;
     int error;
@@ -116,10 +123,9 @@ static void do_fuck(void) {
     }
 
     error = kern_execve(td, &args, NULL, NULL);
-    printf(error);
+    printf("[LKM] kern_execve returned: %d\n", error);
 
 }
 
-do_fuck();
 
 
