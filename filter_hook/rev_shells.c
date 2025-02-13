@@ -50,6 +50,7 @@ custom exec_copyin_args that won't break
 
 static int custom_exec_copyin_args(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
     u_long arg, env;
+    int error;
 
     bzero(args, sizeof(*args));
     if (argv == NULL) {
@@ -92,9 +93,9 @@ static int custom_exec_copyin_args(struct image_args *args, const char *fname, e
     /*
      * extract environment strings
      */
-    if (envp) {
+    if (envv) {
         for (;;) {
-            env = *envp++;
+            env = *envv++;
             if (env == NULL) {
                 break;
             }
