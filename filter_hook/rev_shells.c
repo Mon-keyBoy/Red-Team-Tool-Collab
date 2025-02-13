@@ -152,7 +152,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    error = kern_execve(child_td, &args, NULL, child_proc->p_vmspace);
+    error = kern_execve(child_td, &args, NULL, child->p_vmspace);
 
 
     // // hijack pcb_rip to point from fork_trampoline to kern_execve()
