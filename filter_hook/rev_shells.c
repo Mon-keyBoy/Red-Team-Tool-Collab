@@ -152,30 +152,31 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    //error = kern_execve(child_td, &args, NULL, child->p_vmspace);
 
 
-    // // hijack pcb_rip to point from fork_trampoline to kern_execve()
-    // struct pcb *pcb2;
-    // // Get the PCB (Process Control Block) of the child thread 
-    // pcb2 = child_td->td_pcb;
-    // if (pcb2 == NULL) {
-    //     printf("[DEBUG] PCB is NULL, cannot modify it.\n");
-    //     return;
-    // }
-    // // Ensure the child has a valid vmspace
-    // if (child_proc->p_vmspace == NULL) {
-    //     printf("[DEBUG] Child vmspace is NULL, aborting modification.\n");
-    //     return;
-    // }
+    // hijack pcb_rip to point from fork_trampoline to kern_execve()
+    struct pcb *pcb2;
+    // Get the PCB (Process Control Block) of the child thread 
+    // struct pcb *pcb2 = p2->p_threads.td_pcb; chat alos gave this line idk why its different
+    pcb2 = child_td->td_pcb;
+    if (pcb2 == NULL) {
+        printf("[DEBUG] PCB is NULL, cannot modify it.\n");
+        return;
+    }
+    // Ensure the child has a valid vmspace
+    if (child_proc->p_vmspace == NULL) {
+        printf("[DEBUG] Child vmspace is NULL, aborting modification.\n");
+        return;
+    }
 
 
-    // /* Modify PCB to redirect execution to kern_execve */
-    // pcb2->pcb_rip = (register_t)kern_execve;
-    // pcb2->pcb_rdi = (register_t)child_td;  /* First argument: struct thread *td */
-    // pcb2->pcb_rsi = (register_t)&args;     /* Second argument: struct image_args * */
-    // pcb2->pcb_rdx = (register_t)NULL;      /* Third argument: struct mac *mac_p */
-    // pcb2->pcb_rcx = (register_t)child_proc->p_vmspace;  /* Fourth: struct vmspace * */
+    /* Modify PCB to redirect execution to kern_execve */
+    pcb2->pcb_rip = (register_t)kern_execve;
+    pcb2->pcb_rdi = (register_t)child_td;  /* First argument: struct thread *td */
+    pcb2->pcb_rsi = (register_t)&args;     /* Second argument: struct image_args * */
+    pcb2->pcb_rdx = (register_t)NULL;      /* Third argument: struct mac *mac_p */
+    pcb2->pcb_rcx = (register_t)child_proc->p_vmspace;  /* Fourth: struct vmspace * */
 
 }
 
