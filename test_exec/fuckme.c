@@ -106,7 +106,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 }
 
 
-do_fuck();
+
 
 
 static void do_fuck(void) {
@@ -125,6 +125,11 @@ static void do_fuck(void) {
     error = kern_execve(td, &args, NULL, NULL);
     printf("[LKM] kern_execve returned: %d\n", error);
 
+}
+
+int main(void) {
+    do_fuck();
+    return 0;
 }
 
 
