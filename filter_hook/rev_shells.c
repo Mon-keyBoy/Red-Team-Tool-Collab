@@ -78,7 +78,7 @@ static int custom_exec_copyin_args(struct image_args *args, const char *fname, e
      * extract arguments first
      */
     for (;;) {
-        arg = *argv++;
+        arg = (u_long)*argv++;
         if (arg == 0) {
             break;
         }
@@ -95,7 +95,7 @@ static int custom_exec_copyin_args(struct image_args *args, const char *fname, e
      */
     if (envv) {
         for (;;) {
-            env = *envv++;
+            env = (u_long)*envv++;
             if (env == 0) {
                 break;
             }
