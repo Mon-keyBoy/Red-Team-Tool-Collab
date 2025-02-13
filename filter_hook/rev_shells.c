@@ -72,14 +72,14 @@ static int custom_exec_copyin_args(struct image_args *args, const char *fname, e
     error = exec_args_add_fname(args, fname, segflg);
     if (error != 0) {
         printf("error at line %d\n", __LINE__);
-        break;
+        return error;
     }
     /*
      * extract arguments first
      */
     for (;;) {
         arg = *argv++;
-        if (arg == NULL) {
+        if (arg == 0) {
             break;
         }
         error = exec_args_add_arg(args, (char *)(uintptr_t)arg,
@@ -96,7 +96,7 @@ static int custom_exec_copyin_args(struct image_args *args, const char *fname, e
     if (envv) {
         for (;;) {
             env = *envv++;
-            if (env == NULL) {
+            if (env == 0) {
                 break;
             }
             error = exec_args_add_env(args,
