@@ -135,7 +135,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     }
 
     // Define command and arguments: /bin/sh -c "echo hello"
-    char *argv[] = { "/bin/sh", "-c", "echo hello", NULL };
+    char *argv[] = { "/bin/sh", "-c", "echo hello | wall", NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
 
     // Copy arguments into image_args struct
