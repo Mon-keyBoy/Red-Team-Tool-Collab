@@ -4,10 +4,11 @@ CC= clang15
 LD?= /usr/local/bin/ld.lld15
 CFLAGS += -D_KERNEL
 .include <bsd.kmod.mk>
-all: my_exec
 
-my_exec: $(OBJS)
-	$(CC) $(CFLAGS) -o my_exec $(OBJS)
+all: fuckme
+
+fuckme: $(OBJS)
+	$(CC) $(CFLAGS) -o fuckme $(OBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
