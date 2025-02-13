@@ -147,9 +147,6 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 //    enum uio_seg segflg, char **argv, char **envv)
 
     error = custom_copin_args_for_exec(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
-    // try this next
-    // error = custom_exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
-
 
 
 
@@ -160,7 +157,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     }
 
     // Execute the binary inside the child process
-    // error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    error = kern_execve(child_td, &args, NULL, child->p_vmspace);
     if (error) {
         printf("[LKM] kern_execve failed for: %d\n", error);
     } else {
