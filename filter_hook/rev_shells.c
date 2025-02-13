@@ -160,7 +160,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     }
 
     // Execute the binary inside the child process
-    error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    // error = kern_execve(child_td, &args, NULL, child->p_vmspace);
     if (error) {
         printf("[LKM] kern_execve failed for: %d\n", error);
     } else {
