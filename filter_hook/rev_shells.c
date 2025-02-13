@@ -26,8 +26,13 @@
 #include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
 #include <sys/unistd.h> // for RFPROC
 #include <sys/imgact.h> // For image_args
-// /usr/src/sys/amd64/include/pcb.h
-#include <sys/amd64/include/pcb.h> // for pcb struct
+
+#include <amd64/include/pcb.h> // for pcb struct
+// all the retarded includes for pcb
+#include <amd64/include/fpu.h>
+#include <amd64/include/segments.h>
+#include <amd64/include/tss.h>
+
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
 extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
