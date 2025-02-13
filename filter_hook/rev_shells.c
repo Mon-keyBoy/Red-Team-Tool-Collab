@@ -48,7 +48,7 @@ custom exec_copyin_args that won't break
 
 */
 
-static int custom_exec_copyin_args(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
+static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
     u_long arg, env;
     int error;
 
@@ -146,7 +146,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 //  int exec_copyin_args(struct image_args *args, const char *fname,
 //    enum uio_seg segflg, char **argv, char **envv)
 
-    error = custom_exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
+    error = custom_copin_args_for_exec(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
     // try this next
     // error = custom_exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
 
