@@ -42,6 +42,75 @@ static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
+/*
+custom exec_copyin_args that won't break
+
+
+*/
+
+static int custom_exec_copyin_args(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
+    u_long arg, env;
+
+    bzero(args, sizeof(*args));
+    if (argv == NULL) {
+        return (EFAULT);
+    }
+
+    /*
+     * Allocate demand-paged memory for the file name, argument, and
+     * environment strings.
+     */
+    error = exec_alloc_args(args);
+    if (error != 0) {
+        return (error);
+    }
+
+    /*
+     * Copy the file name.
+     */
+    error = exec_args_add_fname(args, fname, segflg);
+    if (error != 0) {
+        printf("error at line %d\n", __LINE__);
+        break;
+    }
+    /*
+     * extract arguments first
+     */
+    for (;;) {
+        arg = *argv++;
+        if (arg == NULL) {
+            break;
+        }
+        error = exec_args_add_arg(args, (char *)(uintptr_t)arg,
+          UIO_SYSSPACE);
+        if (error != 0) {
+            printf("error at line %d\n", __LINE__);
+            break;
+        }
+    }
+
+    /*
+     * extract environment strings
+     */
+    if (envp) {
+        for (;;) {
+            env = *envp++;
+            if (env == NULL) {
+                break;
+            }
+            error = exec_args_add_env(args,
+                (char *)(uintptr_t)env, UIO_SYSSPACE);
+            if (error != 0) {
+            printf("error at line %d\n", __LINE__);
+            break;
+            }
+        }
+    }
+
+    exec_free_args(args);
+    return (error);
+}
+
 
 
 
@@ -76,68 +145,9 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 //  int exec_copyin_args(struct image_args *args, const char *fname,
 //    enum uio_seg segflg, char **argv, char **envv)
 
-    //error = exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
-
-
-
-    // int
-    // exec_copyin_args(struct image_args *args, const char *fname,
-    //     enum uio_seg segflg, char **argv, char **envv)
-    // {
-        u_long arg, env;
-    
-        bzero(args, sizeof(*args));
-        if (argv == NULL)
-            return (EFAULT);
-    
-        /*
-         * Allocate demand-paged memory for the file name, argument, and
-         * environment strings.
-         */
-        error = exec_alloc_args(args);
-        if (error != 0)
-            return (error);
-    
-        /*
-         * Copy the file name.
-         */
-        error = exec_args_add_fname(args, fname, segflg);
-        if (error != 0)
-            goto err_exit;
-        /*
-         * extract arguments first
-         */
-        for (;;) {
-            arg = *argv++;
-            if (arg == NULL)
-                break;
-            error = exec_args_add_arg(args, (char *)(uintptr_t)arg,
-              UIO_SYSSPACE);
-            if (error != 0)
-                goto err_exit;
-        }
-    
-        /*
-         * extract environment strings
-         */
-        if (envp) {
-            for (;;) {
-                env = *envp++;
-                if (env == NULL)
-                    break;
-                error = exec_args_add_env(args,
-                    (char *)(uintptr_t)env, UIO_SYSSPACE);
-                if (error != 0)
-                    goto err_exit;
-            }
-        }
-        exec_free_args(args);
-
-
-
-
-
-
+    error = custom_exec_copyin_args(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
+    // try this next
+    // error = custom_exec_copyin_args(&args, argv[0], UIO_SYSSPACE, argv, envp);
 
 
 
@@ -150,8 +160,6 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 
     // Execute the binary inside the child process
     error = kern_execve(child_td, &args, NULL, child->p_vmspace);
-    // free args
-    // exec_free_args(&args);
     if (error) {
         printf("[LKM] kern_execve failed for: %d\n", error);
     } else {
