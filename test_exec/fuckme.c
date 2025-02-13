@@ -1,4 +1,4 @@
-#include <sys/param.h>
+#include </usr/src/sys/sys/param.h>
 #include <sys/module.h>
 #include <sys/kernel.h>
 #include <sys/socketvar.h>
