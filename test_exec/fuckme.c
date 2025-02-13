@@ -102,7 +102,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
     return (error);
 }
 
-static void main(void) {
+static void do_fuck(void) {
     struct image_args args;
     int error;
     // Define command and arguments: /bin/sh -c "echo hello"
@@ -120,6 +120,6 @@ static void main(void) {
 
 }
 
-main();
+do_fuck();
 
 
