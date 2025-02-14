@@ -148,7 +148,9 @@ static void func_pcbrip_points_to(void) {
     // give it the current thread
     struct thread *td = curthread;  // Macro to get current thread
 
-    error = kern_execve(td, &args, NULL, NULL);
+
+    // comment out this line to test if calling execve is what's fucking it up
+    // error = kern_execve(td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
     }
