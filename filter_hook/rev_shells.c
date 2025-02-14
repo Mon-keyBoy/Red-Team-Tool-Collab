@@ -155,12 +155,6 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 }
 
 
-static void dummy(struct thread *td, struct trapframe *frame) {
-
-    userret(td, frame);
-
-}
-
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
  * Custom func that will be invoked whenever do_fork() is invoked
