@@ -118,39 +118,19 @@ static int custom_copin_args_for_exec(struct image_args *args, const char *fname
     return (error);
 }
 
-
-
-
-
 /*
- * Start of hooking fork and shoving my big fat juicy execve in there
-*/
-// Custom func that will be invoked whenever do_fork() is invoked
-static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
-    if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
-        // do no custom functionality if this is a normal fork call
-        return;
-    }
+custom func to call exec shit
 
-    struct thread *child_td;
+*/
+static void func_pcbrip_points_to(void) {
+
     struct image_args args;
     int error;
-    child_td = FIRST_THREAD_IN_PROC(child);
-    if (child_td == NULL) {
-        printf("[LKM] Failed to get first thread of child process!\n");
-        return;
-    }
-
     // Define command and arguments: /bin/sh -c "echo hello"
     char *argv[] = { "/bin/sh", "-c", "echo hello | wall", NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
 
-    // Copy arguments into image_args struct
-     // UIO_SYSSPACE is a flag that indicates the memory pointers (like command arguments) are coming from kernel space instead of user space.
-    
-     // correct signature
-//  int exec_copyin_args(struct image_args *args, const char *fname,
-//    enum uio_seg segflg, char **argv, char **envv)
+        // correct signature
 
     error = custom_copin_args_for_exec(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
 
@@ -159,7 +139,33 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    //error = kern_execve(child_td, &args, NULL, child->p_vmspace);
+    error = kern_execve(td, &args, NULL, NULL);
+    if (error != 0) {
+        printf("[LKM] kern_execve returned: %d\n", error);
+    }
+
+}
+
+
+/*
+ * Start of hooking fork and shoving my big fat juicy execve in there
+*/
+// Custom func that will be invoked whenever do_fork() is invoked
+static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
+
+    if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
+        // do no custom functionality if this is a normal fork call
+        return;
+    }
+
+    struct thread *child_td;
+
+    int error;
+    child_td = FIRST_THREAD_IN_PROC(child);
+    if (child_td == NULL) {
+        printf("[LKM] Failed to get first thread of child process!\n");
+        return;
+    }
 
 
     // hijack pcb_rip to point from fork_trampoline to kern_execve()
@@ -171,19 +177,20 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         printf("[DEBUG] PCB is NULL, cannot modify it.\n");
         return;
     }
-    // Ensure the child has a valid vmspace
-    if (child->p_vmspace == NULL) {
-        printf("[DEBUG] Child vmspace is NULL, aborting modification.\n");
-        return;
-    }
+    // these registers are not right
+	// pcb2->pcb_r12 = (register_t)fork_return;	/* fork_trampoline argument */
+	// pcb2->pcb_rbp = 0;
+	// pcb2->pcb_rsp = (register_t)td2->td_frame - sizeof(void *);
+	// pcb2->pcb_rbx = (register_t)td2;		/* fork_trampoline argument */
+	// pcb2->pcb_rip = (register_t)fork_trampoline;
 
 
     /* Modify PCB to redirect execution to kern_execve */
-    pcb2->pcb_rip = (register_t)kern_execve;
-    pcb2->pcb_rdi = (register_t)child_td;  /* First argument: struct thread *td */
-    pcb2->pcb_rsi = (register_t)&args;     /* Second argument: struct image_args * */
-    pcb2->pcb_rdx = (register_t)NULL;      /* Third argument: struct mac *mac_p */
-    pcb2->pcb_rcx = (register_t)child->p_vmspace;  /* Fourth: struct vmspace * */
+    pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+    // pcb2->pcb_rdi = (register_t)child_td;  /* First argument: struct thread *td */
+    // pcb2->pcb_rsi = (register_t)&args;     /* Second argument: struct image_args * */
+    // pcb2->pcb_rdx = (register_t)NULL;      /* Third argument: struct mac *mac_p */
+    // pcb2->pcb_rcx = (register_t)NULL;  /* Fourth: struct vmspace * */
 
 }
 
