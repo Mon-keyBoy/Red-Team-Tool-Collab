@@ -159,14 +159,8 @@ static void func_pcbrip_points_to(void) {
  * Custom func that will be invoked whenever do_fork() is invoked
 */
 
-static void custom_tramp(void) {
-    __asm__ volatile (
-        "movq %r12, %rdi \n\t"  /* Move function pointer (stored in %r12) to first argument register %rdi */
-        "movq %rbx, %rsi \n\t"  /* Move first argument (stored in %rbx) to second argument register %rsi */
-        "movq %rsp, %rdx \n\t"  /* Move stack pointer to third argument register %rdx (trapframe pointer) */
-        "call fork_exit \n\t"   /* Call fork_exit(func, arg, tf) */
-        "jmp doreti"            /* Jump to doreti to handle ASTs (asynchronous traps) */
-    );
+static void dummy(void) {
+
 }
 
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
@@ -202,7 +196,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
 
     // testing if its the modification
-    pcb2->pcb_rip = (register_t)custom_tramp;
+    pcb2->pcb_rip = (register_t)dummy;
 
 
 
