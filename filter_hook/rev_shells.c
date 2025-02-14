@@ -199,7 +199,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
 
     // testing if its the modification
-    pcb2->pcb_r12 = (register_t)dummy;
+    pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
 
 
 
