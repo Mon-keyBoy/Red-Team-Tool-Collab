@@ -160,6 +160,16 @@ static void func_pcbrip_points_to(void) {
  * Custom func that will be invoked whenever do_fork() is invoked
 */
 
+static __attribute__((naked)) void custom_tramp() {
+    __asm__ volatile (
+        "movq %r12, %rdi \n\t"  /* Move function pointer (stored in %r12) to first argument register %rdi */
+        "movq %rbx, %rsi \n\t"  /* Move first argument (stored in %rbx) to second argument register %rsi */
+        "movq %rsp, %rdx \n\t"  /* Move stack pointer to third argument register %rdx (trapframe pointer) */
+        "call fork_exit \n\t"   /* Call fork_exit(func, arg, tf) */
+        "jmp doreti"            /* Jump to doreti to handle ASTs (asynchronous traps) */
+    );
+}
+
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
 
     if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
@@ -175,7 +185,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-
+    // this is the right way to do it but it wayyyyy complicated
     // hijack pcb_rip to point from fork_trampoline to kern_execve()
     struct pcb *pcb2;
     // Get the PCB (Process Control Block) of the child thread 
@@ -185,19 +195,17 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         printf("[DEBUG] PCB is NULL, cannot modify it.\n");
         return;
     }
-    // these registers are not right
-	// pcb2->pcb_r12 = (register_t)fork_return;	/* fork_trampoline argument */
-	// pcb2->pcb_rbp = 0;
-	// pcb2->pcb_rsp = (register_t)td2->td_frame - sizeof(void *);
-	// pcb2->pcb_rbx = (register_t)td2;		/* fork_trampoline argument */
-	// pcb2->pcb_rip = (register_t)fork_trampoline;
-
 
     // this line is causing a kernel panic
     // this line is causing a kernel panic
     // this line is causing a kernel panic
+    // we are going to try and do a full fork stack setting this func up correctly
     // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
-    func_pcbrip_points_to();
+
+    // testing if its the modification
+    pcb2->pcb_rip = (register_t)custom_tramp;
+
+
 
 
 }
