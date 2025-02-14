@@ -195,9 +195,10 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 	// pcb2->pcb_rbx = (register_t)td2;		/* fork_trampoline argument */
 	// pcb2->pcb_rip = (register_t)fork_trampoline;
 
-    // comment this out to see if it's causing the kernel crash
-  
-    pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+
+    // comment this out for now for testing
+    // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+
 
 }
 
