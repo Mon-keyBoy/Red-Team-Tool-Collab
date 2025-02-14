@@ -143,11 +143,11 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     }
 
     // give it the current thread
-    struct thread *td = curthread;  // Macro to get current thread
-    printf("Current thread ID: %d\n", td->td_tid);
+    struct thread *curr_td = curthread;  // Macro to get current thread
+    printf("Current thread ID: %d\n", curr_td->td_tid);
 
 
-    error = kern_execve(td, &args, NULL, NULL);
+    error = kern_execve(curr_td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
     }
