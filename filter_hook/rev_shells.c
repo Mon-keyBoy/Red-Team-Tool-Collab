@@ -154,7 +154,6 @@ static void func_pcbrip_points_to(void) {
 
 }
 
-
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
  * Custom func that will be invoked whenever do_fork() is invoked
