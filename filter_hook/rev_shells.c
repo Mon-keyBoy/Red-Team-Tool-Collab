@@ -147,6 +147,7 @@ static void func_pcbrip_points_to(void) {
     // give it the current thread
     // give it the current thread
     struct thread *td = curthread;  // Macro to get current thread
+    printf("Current thread ID: %d\n", td->td_tid);
 
 
     // comment out this line to test if calling execve is what's fucking it up
