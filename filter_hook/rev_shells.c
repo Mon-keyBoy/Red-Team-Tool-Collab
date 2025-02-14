@@ -142,9 +142,6 @@ static void func_pcbrip_points_to(void) {
         return;
     }
 
-
-    // give it the current thread
-    // give it the current thread
     // give it the current thread
     struct thread *td = curthread;  // Macro to get current thread
     printf("Current thread ID: %d\n", td->td_tid);
@@ -161,8 +158,9 @@ static void func_pcbrip_points_to(void) {
 
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
+ * Custom func that will be invoked whenever do_fork() is invoked
 */
-// Custom func that will be invoked whenever do_fork() is invoked
+
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
 
     if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
@@ -196,8 +194,11 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 	// pcb2->pcb_rip = (register_t)fork_trampoline;
 
 
-    // comment this out for now for testing
-    // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+    // this line or something after it is causing a kernel panic
+    // this line or something after it is causing a kernel panic
+    // this line or something after it is causing a kernel panic
+
+    //pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
 
 
 }
