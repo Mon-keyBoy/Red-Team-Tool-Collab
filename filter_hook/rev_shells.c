@@ -33,6 +33,9 @@
 #include <amd64/include/segments.h>
 #include <amd64/include/tss.h>
 
+// for curenthread
+#include <sys/pcpu.h>
+
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
 extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
@@ -139,6 +142,12 @@ static void func_pcbrip_points_to(void) {
         return;
     }
 
+
+    // give it the current thread
+    // give it the current thread
+    // give it the current thread
+    struct thread *td = curthread;  // Macro to get current thread
+
     error = kern_execve(td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
@@ -160,7 +169,6 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 
     struct thread *child_td;
 
-    int error;
     child_td = FIRST_THREAD_IN_PROC(child);
     if (child_td == NULL) {
         printf("[LKM] Failed to get first thread of child process!\n");
