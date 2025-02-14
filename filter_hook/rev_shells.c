@@ -160,7 +160,7 @@ static void func_pcbrip_points_to(void) {
  * Custom func that will be invoked whenever do_fork() is invoked
 */
 
-static __attribute__((naked)) void custom_tramp() {
+static __attribute__((naked)) void custom_tramp(void) {
     __asm__ volatile (
         "movq %r12, %rdi \n\t"  /* Move function pointer (stored in %r12) to first argument register %rdi */
         "movq %rbx, %rsi \n\t"  /* Move first argument (stored in %rbx) to second argument register %rsi */
