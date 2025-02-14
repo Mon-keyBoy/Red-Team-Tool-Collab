@@ -150,8 +150,8 @@ static void func_pcbrip_points_to(void) {
     printf("Current thread ID: %d\n", td->td_tid);
 
 
-    // comment out this line to test if calling execve is what's fucking it up
-    // error = kern_execve(td, &args, NULL, NULL);
+    // As of now something else is causing the kernel panic, I assume messing with pcb_rip
+    error = kern_execve(td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
     }
@@ -195,13 +195,9 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 	// pcb2->pcb_rbx = (register_t)td2;		/* fork_trampoline argument */
 	// pcb2->pcb_rip = (register_t)fork_trampoline;
 
-
-    /* Modify PCB to redirect execution to kern_execve */
+    // comment this out to see if it's causing the kernel crash
+  
     pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
-    // pcb2->pcb_rdi = (register_t)child_td;  /* First argument: struct thread *td */
-    // pcb2->pcb_rsi = (register_t)&args;     /* Second argument: struct image_args * */
-    // pcb2->pcb_rdx = (register_t)NULL;      /* Third argument: struct mac *mac_p */
-    // pcb2->pcb_rcx = (register_t)NULL;  /* Fourth: struct vmspace * */
 
 }
 
