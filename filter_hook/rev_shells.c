@@ -155,6 +155,9 @@ static void func_pcbrip_points_to(void) {
 
 }
 
+static void random_test_func(void) {
+    return;
+}
 
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
@@ -198,7 +201,8 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     // this line or something after it is causing a kernel panic
     // this line or something after it is causing a kernel panic
 
-    //pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+    // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+    pcb2->pcb_rip = (register_t)random_test_func;
 
 
 }
