@@ -147,7 +147,6 @@ static void func_pcbrip_points_to(void) {
     printf("Current thread ID: %d\n", td->td_tid);
 
 
-    // As of now something else is causing the kernel panic, I assume messing with pcb_rip
     error = kern_execve(td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
@@ -155,9 +154,6 @@ static void func_pcbrip_points_to(void) {
 
 }
 
-static void random_test_func(void) {
-    return;
-}
 
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
@@ -197,12 +193,11 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
 	// pcb2->pcb_rip = (register_t)fork_trampoline;
 
 
-    // this line or something after it is causing a kernel panic
-    // this line or something after it is causing a kernel panic
-    // this line or something after it is causing a kernel panic
-
+    // this line is causing a kernel panic
+    // this line is causing a kernel panic
+    // this line is causing a kernel panic
     // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
-    pcb2->pcb_rip = (register_t)random_test_func;
+    func_pcbrip_points_to();
 
 
 }
