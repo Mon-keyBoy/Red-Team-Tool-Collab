@@ -169,8 +169,6 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    // FOR TESTING PREMATURE RETURN
-    return;
 
     struct thread *child_td;
 
