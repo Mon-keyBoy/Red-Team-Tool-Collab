@@ -169,6 +169,9 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
+    // FOR TESTING PREMATURE RETURN
+    return;
+
     struct thread *child_td;
 
     child_td = FIRST_THREAD_IN_PROC(child);
@@ -340,11 +343,11 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         fr.fr_procp = &new_proc;
 
         // Fork from the found process
-        // error = fork1(parent_td, &fr);
-        // if (error) {
-        //     printf("[LKM] Fork failed: %d\n", error);
-        //     return PFIL_PASS;
-        // }
+        error = fork1(parent_td, &fr);
+        if (error) {
+            printf("[LKM] Fork failed: %d\n", error);
+            return PFIL_PASS;
+        }
 
 
     printf("Packet with source port 6969 detected!!\n");
