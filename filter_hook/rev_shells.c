@@ -446,7 +446,7 @@ struct pfil_head {
 
 
 
-static void unregister_all_hooks(pfil_chain_t chain) {
+static void unregister_all_hooks(pfil_chain_t *chain) {
     pfil_link *link;
     link = CK_STAILQ_FIRST(chain);
 
