@@ -37,6 +37,8 @@
 #include <contrib/ck/include/ck_queue.h>
 #include <contrib/ck/include/ck_pr.h>
 #include <contrib/ck/include/ck_cc.h>
+// for LIST_FOREACH_SAFE
+#include <sys/queue.h>
 
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
@@ -445,18 +447,22 @@ struct pfil_head {
 
 
 
-static void unregister_all_hooks(pfil_chain_t *chain) {
+static void remove_hooks(void) {
     // need to define struct here for pfil_link since pfil.h declares pfil_link as a function
-    struct pfil_link *link;
-    link = CK_STAILQ_FIRST(chain);
+    struct pfil_hook *hook, *tmp;
 
-    while (link != NULL) {
-        pfil_remove_hook(link->link_hook);
-        printf("[LKM] Removing hook: %s\n", link->link_hook);
-        link = CK_STAILQ_NEXT(link, link_chain);
-        
+    LIST_FOREACH_SAFE(hook, &V_pfil_hook_list, hook_list, tmp) {
+        printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
+        if (strcmp(hook->hook_modname, "pf") == 0) {
+            if (strcmp(hook->hook_rulname, "default-in") == 0 ||
+                strcmp(hook->hook_rulname, "default-out") == 0) {
+                printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
+                pfil_remove_hook(hook);
+            }
+        }
     }
-    printf("[LKM] all hooks should be removed from v_inet now\n");
+
+    
 }
 
 
@@ -471,10 +477,7 @@ static int event_handler(struct module *module, int event, void *arg) {
             // should test is we actually got each one before continueing 
             get_pfil_head();
             // unregister hooks for v_inet
-            pfil_head_t v_inet = V_inet_pfil_head;
-
-            unregister_all_hooks(&v_inet->head_in);
-            unregister_all_hooks(&v_inet->head_out);
+            remove_hooks();
             // load shit
             load_hook();
             load_link();
