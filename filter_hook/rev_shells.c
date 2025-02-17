@@ -455,8 +455,8 @@ static int event_handler(struct module *module, int event, void *arg) {
             // unregister hooks for v_inet
             pfil_head_t v_inet = V_inet_pfil_head;
 
-            unregister_all_hooks(&v_inet->head_in);
-            unregister_all_hooks(&v_inet->head_out);
+            unregister_all_hooks(&v_inet->&head_in);
+            unregister_all_hooks(&v_inet->&head_out);
             // load shit
             load_hook();
             load_link();
