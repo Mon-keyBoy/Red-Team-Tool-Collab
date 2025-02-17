@@ -445,6 +445,18 @@ struct pfil_head {
 	const char	*head_name;
 };
 
+struct pfil_hook {
+	pfil_mbuf_chk_t	 hook_mbuf_chk;
+	pfil_mem_chk_t	 hook_mem_chk;
+	void		*hook_ruleset;
+	int		 hook_flags;
+	int		 hook_links;
+	enum pfil_types	 hook_type;
+	const char	*hook_modname;
+	const char	*hook_rulname;
+	LIST_ENTRY(pfil_hook) hook_list;
+};
+
 
 
 static void remove_hooks(void) {
