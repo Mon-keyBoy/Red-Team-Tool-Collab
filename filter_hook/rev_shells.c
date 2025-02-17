@@ -35,6 +35,7 @@
 #include <sys/pcpu.h>
 // for ck_stailq_first
 #include <contrib/ck/include/ck_queue.h>
+#include <contrib/ck/include/ck_pr.h>
 
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
