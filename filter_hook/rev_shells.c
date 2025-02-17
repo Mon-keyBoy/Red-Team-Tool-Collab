@@ -419,7 +419,7 @@ static void unload(void) {
 }
 
 
-static void unregister_all_hooks(struct pfil_chain_t *chain) {
+static void unregister_all_hooks(struct pfil_chain_t chain) {
     struct pfil_link *link;
 
     while ((link = CK_STAILQ_FIRST(chain)) != NULL) {
