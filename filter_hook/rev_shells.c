@@ -478,7 +478,7 @@ static void remove_hooks(void) {
                 if (strcmp(hook->hook_rulname, "default-in") == 0 ||
                     strcmp(hook->hook_rulname, "default-out") == 0) {
                     printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
-                    LIST_REMOVE(hook, hook_list);
+                    // LIST_REMOVE(hook, hook_list);
                     // idk if this actually removed them from anything but it did remove the names from pfilctl hooks
                     pfil_remove_hook(hook);
                 }
