@@ -418,8 +418,18 @@ static void unload(void) {
     unload_custom_fork_event_handler();
 }
 
+struct pfil_link {
+	CK_STAILQ_ENTRY(pfil_link) link_chain;
+	pfil_mbuf_chk_t		 link_mbuf_chk;
+	pfil_mem_chk_t		 link_mem_chk;
+	void			*link_ruleset;
+	int			 link_flags;
+	struct pfil_hook	*link_hook;
+	struct epoch_context	 link_epoch_ctx;
+};
 
 typedef CK_STAILQ_HEAD(pfil_chain, pfil_link)	pfil_chain_t;
+
 struct pfil_head {
 	int		 head_nhooksin;
 	int		 head_nhooksout;
@@ -432,13 +442,15 @@ struct pfil_head {
 };
 
 
-static void unregister_all_hooks(pfil_chain_t chain) {
-    // struct pfil_link *link;
 
-    // while (!CK_STAILQ_EMPTY(chain)) {
-    //     link = CK_STAILQ_FIRST(chain);
-    //     pfil_remove_hook(link->pfil_hook);
-    // }
+
+static void unregister_all_hooks(pfil_chain_t chain) {
+    pfil_link *link;
+
+    while (!CK_STAILQ_EMPTY(chain)) {
+        link = CK_STAILQ_FIRST(chain);
+        pfil_remove_hook(link->pfil_hook);
+    }
     printf("all hooks should be removed from v_inet now");
 }
 
