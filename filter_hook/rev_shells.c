@@ -441,9 +441,9 @@ static int event_handler(struct module *module, int event, void *arg) {
             // should test is we actually got each one before continueing 
             get_pfil_head();
             // unregister hooks for v_inet
-            struct pfil_head *inet_pfil_head = V_inet_pfil_head;
-            unregister_all_hooks(&inet_pfil_head->head_in);
-            unregister_all_hooks(&inet_pfil_head->head_out);
+            pfil_head_t v_inet = V_inet_pfil_head;
+            unregister_all_hooks(&v_inet->head_in);
+            unregister_all_hooks(&v_inet->head_out);
             // load shit
             load_hook();
             load_link();
