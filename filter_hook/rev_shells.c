@@ -459,9 +459,11 @@ struct pfil_hook {
 	LIST_ENTRY(pfil_hook) hook_list;
 };
 
-VNET_DECLARE(struct pfilhookhead, pfil_hook_list);
-#define V_pfil_hook_list VNET(pfil_hook_list)
+// VNET_DECLARE(struct pfilhookhead, pfil_hook_list);
+// #define V_pfil_hook_list VNET(pfil_hook_list)
+// we need to declare this somehow
 
+extern struct pfilhookhead V_pfil_hook_list;
 
 static void remove_hooks(void) {
     // need to define struct here for pfil_link since pfil.h declares pfil_link as a function
