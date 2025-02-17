@@ -459,6 +459,8 @@ struct pfil_hook {
 	LIST_ENTRY(pfil_hook) hook_list;
 };
 
+VNET_DECLARE(struct pfilhookhead, pfil_hook_list);
+#define V_pfil_hook_list VNET(pfil_hook_list)
 
 
 static void remove_hooks(void) {
@@ -467,7 +469,7 @@ static void remove_hooks(void) {
     VNET_ITERATOR_DECL(vnet);
     VNET_FOREACH(vnet) {
         CURVNET_SET_QUIET(vnet);
-        LIST_FOREACH_SAFE(hook, &VNET_NAME(pfil_hook_list), hook_list, tmp) {
+        LIST_FOREACH_SAFE(hook, &V_pfil_hook_list, hook_list, tmp) {
             printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
             if (strcmp(hook->hook_modname, "pf") == 0) {
                 if (strcmp(hook->hook_rulname, "default-in") == 0 ||
