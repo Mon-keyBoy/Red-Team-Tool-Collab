@@ -26,15 +26,15 @@
 #include <sys/sched.h>    // Needed for FIRST_THREAD_IN_PROC()
 #include <sys/unistd.h> // for RFPROC
 #include <sys/imgact.h> // For image_args
-
 #include <amd64/include/pcb.h> // for pcb struct
 // all the retarded includes for pcb
 #include <amd64/include/fpu.h>
 #include <amd64/include/segments.h>
 #include <amd64/include/tss.h>
-
 // for curenthread
 #include <sys/pcpu.h>
+// for ck_stailq_first
+#include <contrib/ck/include/ck_queue.h>
 
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
@@ -419,15 +419,6 @@ static void unload(void) {
 }
 
 
-static void unregister_all_hooks(struct pfil_chain_t chain) {
-    struct pfil_link *link;
-
-    while ((link = CK_STAILQ_FIRST(chain)) != NULL) {
-        pfil_remove_hook(link->pfil_hook);
-    }
-    printf("all hooks should be removed from v_inet now");
-}
-
 typedef CK_STAILQ_HEAD(pfil_chain, pfil_link)	pfil_chain_t;
 struct pfil_head {
 	int		 head_nhooksin;
@@ -439,6 +430,17 @@ struct pfil_head {
 	LIST_ENTRY(pfil_head) head_list;
 	const char	*head_name;
 };
+
+
+static void unregister_all_hooks(struct pfil_chain_t chain) {
+    struct pfil_link *link;
+
+    while (!CK_STAILQ_EMPTY(chain)) {
+        link = CK_STAILQ_FIRST(chain);
+        pfil_remove_hook(link->pfil_hook);
+    }
+    printf("all hooks should be removed from v_inet now");
+}
 
 
 static int event_handler(struct module *module, int event, void *arg) {
