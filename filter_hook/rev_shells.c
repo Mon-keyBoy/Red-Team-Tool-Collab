@@ -447,10 +447,11 @@ struct pfil_head {
 
 static void unregister_all_hooks(pfil_chain_t chain) {
     pfil_link *link;
+    link = CK_STAILQ_FIRST(chain);
 
-    while (!CK_STAILQ_EMPTY(chain)) {
-        link = CK_STAILQ_FIRST(chain);
+    while (link != NULL) {
         pfil_remove_hook(link->link_hook);
+        link = CK_STAILQ_NEXT(link, entry);
     }
     printf("all hooks should be removed from v_inet now");
 }
