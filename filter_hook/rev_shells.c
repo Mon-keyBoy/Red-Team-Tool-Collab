@@ -419,7 +419,7 @@ static void unload(void) {
 }
 
 
-void unregister_all_hooks(struct pfil_chain_t *chain) {
+static void unregister_all_hooks(struct pfil_chain_t *chain) {
     struct pfil_link *link;
 
     while ((link = CK_STAILQ_FIRST(chain)) != NULL) {
@@ -442,9 +442,8 @@ static int event_handler(struct module *module, int event, void *arg) {
             // should test is we actually got each one before continueing 
             get_pfil_head();
             // unregister hooks for v_inet
-            struct pfil_head_t *inet_pfil_head = V_inet_pfil_head;
-            unregister_all_hooks(&inet_pfil_head->head_in);
-            unregister_all_hooks(&inet_pfil_head->head_out);
+            unregister_all_hooks(&g_ph->head_in);
+            unregister_all_hooks(&g_ph->head_out);
             // load shit
             load_hook();
             load_link();
