@@ -1,0 +1,10 @@
+even if we could make our own head (we can if we just follow what other shit does)
+then we still need to unlink all the other shit since they still have all their heads.
+
+so the solution is this
+
+    prior to linking our hook
+we iterate through each hook in V_ipf_inet_hook and unregister it
+we then unregister any other hooks that could pose a threat to the box.
+test vigourosly.
+then u can worry about the boxes inside.

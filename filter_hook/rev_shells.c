@@ -418,7 +418,26 @@ static void unload(void) {
     unload_custom_fork_event_handler();
 }
 
+static void unlink_standard_ipv4_hooks(void){
 
+
+    struct pfil_hook_t hook, temp_hook;
+
+    /* Iterate through inbound hooks */
+    CK_STAILQ_FOREACH_SAFE(hook, &g_ph->ph_in, ph_list, temp_hook) {
+        printf("Inbound Hook: %s\n", hook->ph_name);
+        pfil_remove_hook(temp_hook);
+    }
+
+    /* Iterate through outbound hooks */
+    CK_STAILQ_FOREACH_SAFE(hook, &ph->g_ph_out, ph_list, temp_hook) {
+        printf("Outbound Hook: %s\n", hook->ph_name);
+        pfil_remove_hook(temp_hook);
+    }
+
+    printf("All hooks removed from V_inet_pfil_head, but the head remains.\n");
+        
+}
 
 static int event_handler(struct module *module, int event, void *arg) {
     switch (event) {
@@ -429,6 +448,7 @@ static int event_handler(struct module *module, int event, void *arg) {
             // load_head();
             // should test is we actually got each one before continueing 
             get_pfil_head();
+            unlink_standard_ipv4_hooks();
             load_hook();
             load_link();
             load_custom_fork_event_handler();
