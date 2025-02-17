@@ -486,11 +486,9 @@ static void remove_hooks(void) {
         CURVNET_RESTORE();
 
     }
-    
 
     
 }
-
 
 
 static int event_handler(struct module *module, int event, void *arg) {
