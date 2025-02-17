@@ -478,12 +478,15 @@ static void remove_hooks(void) {
                 if (strcmp(hook->hook_rulname, "default-in") == 0 ||
                     strcmp(hook->hook_rulname, "default-out") == 0) {
                     printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
+                    LIST_REMOVE(hook, hook_list);
                     pfil_remove_hook(hook);
                 }
             }
         }
+        CURVNET_RESTORE();
 
     }
+    
 
     
 }
