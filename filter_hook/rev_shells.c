@@ -452,7 +452,7 @@ static void unregister_all_hooks(pfil_chain_t *chain) {
 
     while (link != NULL) {
         pfil_remove_hook(link->link_hook);
-        printf("[LKM] Removing hook: %s\n", link->link_hook->ph_name);
+        printf("[LKM] Removing hook: %s\n", link->link_hook);
         link = CK_STAILQ_NEXT(link, link_chain);
         
     }
