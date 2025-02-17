@@ -452,11 +452,13 @@ static void unregister_all_hooks(pfil_chain_t *chain) {
 
     while (link != NULL) {
         pfil_remove_hook(link->link_hook);
+        printf("[LKM] Removing hook: %s\n", link->link_hook->ph_name);
         link = CK_STAILQ_NEXT(link, link_chain);
-        printf("got one\n");
+        
     }
     printf("[LKM] all hooks should be removed from v_inet now\n");
 }
+
 
 
 static int event_handler(struct module *module, int event, void *arg) {
