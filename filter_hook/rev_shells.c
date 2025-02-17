@@ -428,7 +428,17 @@ static void unregister_all_hooks(struct pfil_chain_t chain) {
     printf("all hooks should be removed from v_inet now");
 }
 
-
+typedef CK_STAILQ_HEAD(pfil_chain, pfil_link)	pfil_chain_t;
+struct pfil_head {
+	int		 head_nhooksin;
+	int		 head_nhooksout;
+	pfil_chain_t	 head_in;
+	pfil_chain_t	 head_out;
+	int		 head_flags;
+	enum pfil_types	 head_type;
+	LIST_ENTRY(pfil_head) head_list;
+	const char	*head_name;
+};
 
 
 static int event_handler(struct module *module, int event, void *arg) {
@@ -442,6 +452,7 @@ static int event_handler(struct module *module, int event, void *arg) {
             get_pfil_head();
             // unregister hooks for v_inet
             pfil_head_t v_inet = V_inet_pfil_head;
+
             unregister_all_hooks(&v_inet->head_in);
             unregister_all_hooks(&v_inet->head_out);
             // load shit
