@@ -36,6 +36,7 @@
 // for ck_stailq_first
 #include <contrib/ck/include/ck_queue.h>
 #include <contrib/ck/include/ck_pr.h>
+#include <contrib/ck/include/ck_cc.h>
 
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
@@ -451,7 +452,7 @@ static void unregister_all_hooks(pfil_chain_t chain) {
 
     while (link != NULL) {
         pfil_remove_hook(link->link_hook);
-        link = CK_STAILQ_NEXT(link, entry);
+        link = CK_STAILQ_NEXT(link, link_chain);
     }
     printf("all hooks should be removed from v_inet now");
 }
