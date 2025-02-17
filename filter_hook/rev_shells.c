@@ -454,7 +454,7 @@ static void unregister_all_hooks(pfil_chain_t *chain) {
         pfil_remove_hook(link->link_hook);
         link = CK_STAILQ_NEXT(link, link_chain);
     }
-    printf("all hooks should be removed from v_inet now");
+    printf("[LKM] all hooks should be removed from v_inet now\n");
 }
 
 
