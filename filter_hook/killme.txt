@@ -8,3 +8,11 @@ we iterate through each hook in V_ipf_inet_hook and unregister it
 we then unregister any other hooks that could pose a threat to the box.
 test vigourosly.
 then u can worry about the boxes inside.
+
+
+
+you're onto something here.
+You just need to iterate through each hook and remove it, there is porbably a better to do it
+than what you are trying right now but if you can't find anything then you can just declare everything
+in the file and use pfil_head.
+You can't use it right now since it is defined in a .c file and hidden.
