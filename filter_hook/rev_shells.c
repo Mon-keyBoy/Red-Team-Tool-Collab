@@ -432,7 +432,7 @@ struct pfil_head {
 };
 
 
-static void unregister_all_hooks(struct pfil_chain_t chain) {
+static void unregister_all_hooks(pfil_chain_t chain) {
     // struct pfil_link *link;
 
     // while (!CK_STAILQ_EMPTY(chain)) {
