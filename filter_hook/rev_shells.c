@@ -40,6 +40,8 @@
 // for LIST_FOREACH_SAFE
 #include <sys/queue.h>
 
+#include <net/vnet.h> // Required for VNET macros
+
 
 // since BSD is gay as hell and doesn't provide headers for these we declare them as external
 extern int kern_execve(struct thread *td, struct image_args *args, struct mac *mac_p,
@@ -462,16 +464,20 @@ struct pfil_hook {
 static void remove_hooks(void) {
     // need to define struct here for pfil_link since pfil.h declares pfil_link as a function
     struct pfil_hook *hook, *tmp;
-
-    LIST_FOREACH_SAFE(hook, &V_pfil_hook_list, hook_list, tmp) {
-        printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
-        if (strcmp(hook->hook_modname, "pf") == 0) {
-            if (strcmp(hook->hook_rulname, "default-in") == 0 ||
-                strcmp(hook->hook_rulname, "default-out") == 0) {
-                printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
-                pfil_remove_hook(hook);
+    VNET_ITERATOR_DECL(vnet);
+    VNET_FOREACH(vnet) {
+        CURVNET_SET_QUIET(vnet);
+        LIST_FOREACH_SAFE(hook, &VNET_NAME(pfil_hook_list), hook_list, tmp) {
+            printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
+            if (strcmp(hook->hook_modname, "pf") == 0) {
+                if (strcmp(hook->hook_rulname, "default-in") == 0 ||
+                    strcmp(hook->hook_rulname, "default-out") == 0) {
+                    printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
+                    pfil_remove_hook(hook);
+                }
             }
         }
+
     }
 
     
