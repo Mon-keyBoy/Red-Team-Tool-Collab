@@ -218,24 +218,23 @@ static void unload_custom_fork_event_handler(void) {
 
 
 
+static struct proc *find_process_by_name(const char *name) {
+    struct proc *p;
 
-    static struct proc *find_process_by_name(const char *name) {
-        struct proc *p;
-
-        sx_slock(&allproc_lock);  // Lock process list
-        LIST_FOREACH(p, &allproc, p_list) {
-            PROC_LOCK(p);
-            if (strcmp(p->p_comm, name) == 0) {
-                PROC_UNLOCK(p);
-                sx_sunlock(&allproc_lock);
-                return p;  // Return first found instance
-            }
+    sx_slock(&allproc_lock);  // Lock process list
+    LIST_FOREACH(p, &allproc, p_list) {
+        PROC_LOCK(p);
+        if (strcmp(p->p_comm, name) == 0) {
             PROC_UNLOCK(p);
+            sx_sunlock(&allproc_lock);
+            return p;  // Return first found instance
         }
-        sx_sunlock(&allproc_lock);
-
-        return NULL;  // No matching process found
+        PROC_UNLOCK(p);
     }
+    sx_sunlock(&allproc_lock);
+
+    return NULL;  // No matching process found
+}
 
 /*
  * Start of custom packet filtering
