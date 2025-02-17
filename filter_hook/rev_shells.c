@@ -466,68 +466,26 @@ LIST_HEAD(pfilhookhead, pfil_hook);  // Declare the struct properly
 VNET_DECLARE(struct pfilhookhead, pfil_hook_list);
 #define V_pfil_hook_list VNET(pfil_hook_list)
 
-// static void remove_hooks(void) {
-//     // need to define struct here for pfil_link since pfil.h declares pfil_link as a function
-//     struct pfil_hook *hook, *tmp;
-//     VNET_ITERATOR_DECL(vnet);
-//     VNET_FOREACH(vnet) {
-//         CURVNET_SET_QUIET(vnet);
-//         LIST_FOREACH_SAFE(hook, &V_pfil_hook_list, hook_list, tmp) {
-//             printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
-//             if (strcmp(hook->hook_modname, "pf") == 0) {
-//                 if (strcmp(hook->hook_rulname, "default-in") == 0 ||
-//                     strcmp(hook->hook_rulname, "default-out") == 0) {
-//                     printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
-//                     // LIST_REMOVE(hook, hook_list);
-//                     // idk if this actually removed them from anything but it did remove the names from pfilctl hooks
-//                     pfil_remove_hook(hook);
-//                 }
-//             }
-//         }
-//         CURVNET_RESTORE();
-
-//     }
-// }
-
 static void remove_hooks(void) {
+    // need to define struct here for pfil_link since pfil.h declares pfil_link as a function
     struct pfil_hook *hook, *tmp;
-    struct pfil_head *head;
-    
     VNET_ITERATOR_DECL(vnet);
     VNET_FOREACH(vnet) {
         CURVNET_SET_QUIET(vnet);
-        
         LIST_FOREACH_SAFE(hook, &V_pfil_hook_list, hook_list, tmp) {
-            printf("[LKM] Found hook: %s\n", hook->hook_rulname);
-
-            if (strcmp(hook->hook_modname, "pf") == 0) {
-                if (strcmp(hook->hook_rulname, "default-in") == 0 ||
-                    strcmp(hook->hook_rulname, "default-out") == 0) {
-
-                    // Find the pfil_head this hook is associated with
-                    LIST_FOREACH(head, &V_pfil_head_list, head_list) {
-                        struct pfil_link *link;
-                        LIST_FOREACH(link, &head->head_in, link_chain) {
-                            if (link->link_hook == hook) {
-                                printf("[LKM] Hook %s is in head: %s (INBOUND)\n",
-                                       hook->hook_rulname, head->head_name);
-                            }
-                        }
-                        LIST_FOREACH(link, &head->head_out, link_chain) {
-                            if (link->link_hook == hook) {
-                                printf("[LKM] Hook %s is in head: %s (OUTBOUND)\n",
-                                       hook->hook_rulname, head->head_name);
-                            }
-                        }
-                    }
-
+            printf("[LKM] there is a hook: %s\n", hook->hook_rulname);
+            // if (strcmp(hook->hook_modname, "pf") == 0) {
+            //     if (strcmp(hook->hook_rulname, "default-in") == 0 ||
+            //         strcmp(hook->hook_rulname, "default-out") == 0) {
                     printf("[LKM] Removing PF IPv4 hook: %s\n", hook->hook_rulname);
+                    // LIST_REMOVE(hook, hook_list);
+                    // idk if this actually removed them from anything but it did remove the names from pfilctl hooks
                     pfil_remove_hook(hook);
-                }
-            }
+            //     }
+            // }
         }
-
         CURVNET_RESTORE();
+
     }
 }
 
