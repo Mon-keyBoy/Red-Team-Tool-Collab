@@ -293,7 +293,7 @@ static pfil_return_t my_packet_filter(struct mbuf **mp, struct ifnet *ifp, int d
     // Find the process "apeshit"
     parent_proc = find_process_by_name(TARGET_PROC);
     if (parent_proc == NULL) {
-        printf("[LKM] No running process named '%s' found.\n", TARGET_PROC);
+        // printf("[LKM] No running process named '%s' found.\n", TARGET_PROC);
         return PFIL_PASS;
     }
 
