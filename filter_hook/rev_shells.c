@@ -52,8 +52,6 @@ static void __stack_chk_fail(void) {
     panic("Kernel stack smashing detected!");
 }
 
-
-
 /*
 custom exec_copyin_args that won't break
 */
@@ -399,8 +397,6 @@ static int event_handler(struct module *module, int event, void *arg) {
             load_custom_fork_event_handler();
             return 0;
         case MOD_UNLOAD:
-            unload();
-            printf("[LKM] Module unloaded.\n");
             return 0;
         default:
             return EOPNOTSUPP;
