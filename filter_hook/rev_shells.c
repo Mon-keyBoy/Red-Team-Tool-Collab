@@ -196,7 +196,6 @@ static void unload_custom_fork_event_handler(void) {
 static struct proc *find_process_by_name(const char *name) {
 
     struct proc *p;
-    size_t name_len = strlen(name);
 
     sx_slock(&allproc_lock);  // Lock process list
     LIST_FOREACH(p, &allproc, p_list) {
