@@ -37,7 +37,7 @@ static int event_handler(struct module *module, int event, void *arg) {
         case MOD_UNLOAD:
             reload();
             printf("[LKM] Module unloaded.\n");
-            return EBUSY;
+            return 0;
         default:
             return EOPNOTSUPP;
     }
