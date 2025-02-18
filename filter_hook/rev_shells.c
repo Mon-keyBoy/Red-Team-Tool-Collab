@@ -201,7 +201,7 @@ static struct proc *find_process_by_name(const char *name) {
     sx_slock(&allproc_lock);  // Lock process list
     LIST_FOREACH(p, &allproc, p_list) {
         PROC_LOCK(p);
-        if (strcmp(p->p_comm, name, name_len) == 0) {
+        if (strncmp(p->p_comm, name, 7) == 0) {
             PROC_UNLOCK(p);
             printf("got one\n");
             sx_sunlock(&allproc_lock);
